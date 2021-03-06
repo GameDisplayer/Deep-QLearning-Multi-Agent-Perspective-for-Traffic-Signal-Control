@@ -6,6 +6,7 @@ This repository is forked from [Andrea Visali's repository](https://github.com/A
 ## Brief description of the scope and objectives of the thesis:
 
 The thesis is aimed at, first, studying the experimental setup and baseline approach of an adaptive traffic signal control system (TLSC) while adding some improvements.
+
 The project goal would, then, be the passage to a multi-agent perspective by implementing two agents independently learning within the traffic environment and analysing their behaviors.
 
 ## Goals :
