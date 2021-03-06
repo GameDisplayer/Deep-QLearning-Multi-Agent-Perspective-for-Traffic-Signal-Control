@@ -250,6 +250,102 @@ class Simulation:
                 state[car_position] = 1  # write the position of the car car_id in the state array in the form of "cell occupied"
 
         return state
+    
+    def _get_state_with_advanced_perception(self):
+        """
+        Retrieve the state of the intersection from sumo, in the form of four arrays representing respectively :
+        - the number of cars per each cell
+        - the average speed of cars in each cell
+        - the cumulated waiting time per each cell
+        - the number of queued cars per each cell
+        """
+        #Initialize the four arrays that will form our state representation
+        nb_cars = np.zeros(self._num_states)
+        avg_speed = np.zeros(self._num_states)
+        cumulated_waiting_time = np.zeros(self._num_states)
+        nb_queued_cars = np.zeros(self._num_states)
+        
+        car_list = traci.vehicle.getIDList()
+        for car_id in car_list:
+            car_speed = traci.vehicle.getSpeed(car_id)
+            wait_time = traci.vehicle.getAccumulatedWaitingTime(car_id)
+            
+            lane_pos = traci.vehicle.getLanePosition(car_id)
+            lane_id = traci.vehicle.getLaneID(car_id)
+            lane_pos = 750 - lane_pos  # inversion of lane pos, so if the car is close to the traffic light -> lane_pos = 0 --- 750 = max len of a road
+
+            # distance in meters from the traffic light -> mapping into cells
+            if lane_pos < 7:
+                lane_cell = 0
+            elif lane_pos < 14:
+                lane_cell = 1
+            elif lane_pos < 21:
+                lane_cell = 2
+            elif lane_pos < 28:
+                lane_cell = 3
+            elif lane_pos < 40:
+                lane_cell = 4
+            elif lane_pos < 60:
+                lane_cell = 5
+            elif lane_pos < 100:
+                lane_cell = 6
+            elif lane_pos < 160:
+                lane_cell = 7
+            elif lane_pos < 400:
+                lane_cell = 8
+            elif lane_pos <= 750:
+                lane_cell = 9
+
+            # finding the lane where the car is located 
+            # x2TL_3 are the "turn left only" lanes
+            if lane_id == "W2TL_0" or lane_id == "W2TL_1" or lane_id == "W2TL_2":
+                lane_group = 0
+            elif lane_id == "W2TL_3":
+                lane_group = 1
+            elif lane_id == "N2TL_0" or lane_id == "N2TL_1" or lane_id == "N2TL_2":
+                lane_group = 2
+            elif lane_id == "N2TL_3":
+                lane_group = 3
+            elif lane_id == "E2TL_0" or lane_id == "E2TL_1" or lane_id == "E2TL_2":
+                lane_group = 4
+            elif lane_id == "E2TL_3":
+                lane_group = 5
+            elif lane_id == "S2TL_0" or lane_id == "S2TL_1" or lane_id == "S2TL_2":
+                lane_group = 6
+            elif lane_id == "S2TL_3":
+                lane_group = 7
+            else:
+                lane_group = -1
+
+            if lane_group >= 1 and lane_group <= 7:
+                car_position = int(str(lane_group) + str(lane_cell))  # composition of the two postion ID to create a number in interval 0-79
+                valid_car = True
+            elif lane_group == 0:
+                car_position = lane_cell
+                valid_car = True
+            else:
+                valid_car = False  # flag for not detecting cars crossing the intersection or driving away from it
+
+            if valid_car:
+                nb_cars[car_position] += 1  
+                avg_speed[car_position] += car_speed
+                # A speed of less than 0.1 m/s is considered a halt.
+                if (car_speed  < 0.1):
+                    nb_queued_cars[car_position] += 1
+                cumulated_waiting_time[car_position] += wait_time
+                
+                
+        
+        #avg_speed is an accumulative speed for the moment, we need to divide by the number of cars to obtain the average speed
+        for i in range(len(avg_speed)):
+            avg_speed[i] /= nb_cars[i] # avg_speed[i] = avg_speed[i] / nb_cars[i] 
+                
+            
+        #State is now a vector of 80 * 4
+        state = np.vstack((nb_cars, avg_speed, cumulated_waiting_time, nb_queued_cars))
+
+        return state
+
 
 
     def _replay(self):
