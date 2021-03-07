@@ -16,7 +16,7 @@ PHASE_EWL_YELLOW = 7
 
 
 class Simulation:
-    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs):
+    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, training_epochs):
         self._Model = Model
         self._Memory = Memory
         self._TrafficGen = TrafficGen
@@ -26,6 +26,7 @@ class Simulation:
         self._max_steps = max_steps
         self._green_duration = green_duration
         self._yellow_duration = yellow_duration
+        self._num_cells = num_cells
         self._num_states = num_states
         self._num_actions = num_actions
         self._reward_store = []
@@ -58,7 +59,7 @@ class Simulation:
         while self._step < self._max_steps:
 
             # get current state of the intersection
-            current_state = self._get_state()
+            current_state = self._get_state_with_advanced_perception()
 
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
@@ -260,10 +261,10 @@ class Simulation:
         - the number of queued cars per each cell
         """
         #Initialize the four arrays that will form our state representation
-        nb_cars = np.zeros(self._num_states)
-        avg_speed = np.zeros(self._num_states)
-        cumulated_waiting_time = np.zeros(self._num_states)
-        nb_queued_cars = np.zeros(self._num_states)
+        nb_cars = np.zeros(self._num_cells)
+        avg_speed = np.zeros(self._num_cells)
+        cumulated_waiting_time = np.zeros(self._num_cells)
+        nb_queued_cars = np.zeros(self._num_cells)
         
         car_list = traci.vehicle.getIDList()
         for car_id in car_list:
@@ -334,16 +335,17 @@ class Simulation:
                     nb_queued_cars[car_position] += 1
                 cumulated_waiting_time[car_position] += wait_time
                 
-                
-        
+                     
         #avg_speed is an accumulative speed for the moment, we need to divide by the number of cars to obtain the average speed
         for i in range(len(avg_speed)):
-            avg_speed[i] /= nb_cars[i] # avg_speed[i] = avg_speed[i] / nb_cars[i] 
+            if (nb_cars[i] > 1):
+                avg_speed[i] /= nb_cars[i] # avg_speed[i] = avg_speed[i] / nb_cars[i] 
                 
             
         #State is now a vector of 80 * 4
-        state = np.vstack((nb_cars, avg_speed, cumulated_waiting_time, nb_queued_cars))
+        state = np.concatenate((nb_cars, avg_speed, cumulated_waiting_time, nb_queued_cars))
 
+        #print(state.shape)
         return state
 
 

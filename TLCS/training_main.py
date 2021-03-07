@@ -52,6 +52,7 @@ if __name__ == "__main__":
         config['max_steps'],
         config['green_duration'],
         config['yellow_duration'],
+        config['num_cells'],
         config['num_states'],
         config['num_actions'],
         config['training_epochs']
