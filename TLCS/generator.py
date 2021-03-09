@@ -2,7 +2,7 @@ import numpy as np
 import math
 
 class TrafficGenerator:
-    def __init__(self, max_steps, n_cars_generated, scenario):
+    def __init__(self, max_steps, n_cars_generated, scenario=None):
         self._n_cars_generated = n_cars_generated  # how many cars per episode
         self._max_steps = max_steps
         self._scenario = scenario
@@ -45,15 +45,18 @@ class TrafficGenerator:
             <route id="S_W" edges="S2TL TL2W"/>
             <route id="S_N" edges="S2TL TL2N"/>
             <route id="S_E" edges="S2TL TL2E"/>""", file=routes)
+            
+            #Determine the coming percentage depending on the scenario -> EW 90% - 10% (inverse of NS)
+            if (self._scenario == 'EW'):
+                coming_from_percentage = 0.90
+            else:
+                coming_from_percentage = 0.10
 
             for car_counter, step in enumerate(car_gen_steps):
                 
+                #EW or NS scenario
                 if(self._scenario == 'EW' or self._scenario == 'NS'): #EW or NS traffic scenario
                     
-                    if (self._scenario == 'EW'):
-                        coming_from_percentage = 0.90
-                    else:
-                        coming_from_percentage = 0.10
                     axis_direction = np.random.uniform()
                     #Straight or turn
                     straight_or_turn = np.random.uniform()
@@ -91,7 +94,7 @@ class TrafficGenerator:
                                 print('    <vehicle id="N_W_%i" type="standard_car" route="N_W" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
                             elif route_turn == 4:
                                 print('    <vehicle id="N_E_%i" type="standard_car" route="N_E" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
-                   
+                # Low or High scenario 
                 else :
                     
                     straight_or_turn = np.random.uniform()
