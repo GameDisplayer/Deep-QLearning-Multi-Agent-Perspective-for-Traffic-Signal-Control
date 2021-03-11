@@ -27,8 +27,12 @@ class TrainModel:
         """
         inputs = keras.Input(shape=(self._input_dim,))
         x = layers.Dense(width, activation='relu')(inputs)
-        for _ in range(num_layers):
-            x = layers.Dense(width, activation='relu')(x)
+        x = layers.Dropout(0.5)(x)
+        x = layers.Dense(width, activation='relu')(x)
+        x = layers.Dropout(0.5)(x)
+        x = layers.Dense(width/2, activation='relu')(x)
+        x = layers.Dropout(0.5)(x)
+        x = layers.Dense(width/4, activation='relu')(x)
         outputs = layers.Dense(self._output_dim, activation='linear')(x)
 
         model = keras.Model(inputs=inputs, outputs=outputs, name='my_model')
