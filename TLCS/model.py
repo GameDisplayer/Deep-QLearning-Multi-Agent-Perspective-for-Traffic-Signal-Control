@@ -19,6 +19,8 @@ class TrainModel:
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         self._model = self._build_model(num_layers, width)
+        self._training_loss = 0
+
 
 
     def _build_model(self, num_layers, width):
@@ -27,16 +29,15 @@ class TrainModel:
         """
         inputs = keras.Input(shape=(self._input_dim,))
         x = layers.Dense(width, activation='relu')(inputs)
-        x = layers.Dropout(0.5)(x)
         x = layers.Dense(width, activation='relu')(x)
-        x = layers.Dropout(0.5)(x)
+        x = layers.Dropout(0.2)(x)
         x = layers.Dense(width/2, activation='relu')(x)
-        x = layers.Dropout(0.5)(x)
+        x = layers.Dropout(0.2)(x)
         x = layers.Dense(width/4, activation='relu')(x)
         outputs = layers.Dense(self._output_dim, activation='linear')(x)
 
         model = keras.Model(inputs=inputs, outputs=outputs, name='my_model')
-        model.compile(loss=losses.mean_squared_error, optimizer=Adam(lr=self._learning_rate))
+        model.compile(loss=losses.mean_squared_error, optimizer=Adam(lr=self._learning_rate), metrics=['mae'])
         return model
     
 
@@ -59,7 +60,10 @@ class TrainModel:
         """
         Train the nn using the updated q-values
         """
-        self._model.fit(states, q_sa, epochs=1, verbose=0)
+        history = self._model.fit(states, q_sa, epochs=1, verbose=0)
+        #Get training and testing loss to analyse the model behavior
+        self._training_loss = history.history['loss'][0]
+        
 
 
     def save_model(self, path):
