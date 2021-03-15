@@ -29,10 +29,16 @@ class Simulation:
         self._num_cells = num_cells
         self._num_states = num_states
         self._num_actions = num_actions
+        self._training_epochs = training_epochs
+        
         self._reward_store = []
         self._cumulative_wait_store = []
         self._avg_queue_length_store = []
-        self._training_epochs = training_epochs
+        self._avg_loss = []
+        self._avg_wait_time_per_vehicle = []
+        self._min_loss = []
+        self._avg_density = []
+        self._avg_flow = []
 
 
     def run(self, episode, epsilon):
@@ -52,6 +58,11 @@ class Simulation:
         self._sum_neg_reward = 0
         self._sum_queue_length = 0
         self._sum_waiting_time = 0
+        self._model_training_loss = []
+        self._already_in = []
+        self._density = []
+        self._flow = []
+        self._cumulative_waiting_time = 0
         old_total_wait = 0
         old_state = -1
         old_action = -1
@@ -60,11 +71,15 @@ class Simulation:
 
             # get current state of the intersection
             current_state = self._get_state_with_advanced_perception()
-
+            
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             current_total_wait = self._collect_waiting_times()
             reward = old_total_wait - current_total_wait
+            
+            self._cumulative_waiting_time+= current_total_wait
+            self._flow.append(self._get_flow())
+            self._density.append(self._get_density())
 
             # saving the data into the memory
             if self._step != 0:
@@ -91,6 +106,7 @@ class Simulation:
             if reward < 0:
                 self._sum_neg_reward += reward
 
+        print("Saving episodes stats...")
         self._save_episode_stats()
         print("Total reward:", self._sum_neg_reward, "- Epsilon:", round(epsilon, 2))
         traci.close()
@@ -101,6 +117,12 @@ class Simulation:
         for _ in range(self._training_epochs):
             self._replay()
         training_time = round(timeit.default_timer() - start_time, 1)
+        
+        if(len(self._model_training_loss) > 0):
+            print("Saving loss results...")
+            #print(self._model_training_loss)
+            self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
+            self._min_loss.append(min(self._model_training_loss))
 
         return simulation_time, training_time
 
@@ -118,7 +140,7 @@ class Simulation:
             steps_todo -= 1
             queue_length = self._get_queue_length()
             self._sum_queue_length += queue_length
-            self._sum_waiting_time += queue_length # 1 step while wating in queue means 1 second waited, for each car, therefore queue_lenght == waited_seconds
+            self._sum_waiting_time += queue_length # 1 step while waiting in queue means 1 second waited, for each car, therefore queue_lenght == waited_seconds
 
 
     def _collect_waiting_times(self):
@@ -179,85 +201,45 @@ class Simulation:
         halt_S = traci.edge.getLastStepHaltingNumber("S2TL")
         halt_E = traci.edge.getLastStepHaltingNumber("E2TL")
         halt_W = traci.edge.getLastStepHaltingNumber("W2TL")
-        queue_length = halt_N + halt_S + halt_E + halt_W
-        return queue_length
-
-
-    def _get_state(self):
+        return halt_N + halt_S + halt_E + halt_W
+    
+    def _get_density(self):
         """
-        Retrieve the state of the intersection from sumo, in the form of cell occupancy
+        Retrieve the density (vehicles per km) of every edges/lanes
         """
-        state = np.zeros(self._num_states)
-        car_list = traci.vehicle.getIDList()
-
+        divider = traci.lane.getLength("N2TL_0") / 1000 #  derives the id of the first lane from the edge id (all lanes of an edge have the same length) and 1000 m -> km
+        den_N = traci.edge.getLastStepVehicleNumber("N2TL") / divider
+        den_S = traci.edge.getLastStepVehicleNumber("S2TL") / divider
+        den_E = traci.edge.getLastStepVehicleNumber("E2TL") / divider
+        den_W = traci.edge.getLastStepVehicleNumber("W2TL") / divider
+        return den_N + den_S + den_E + den_W
+    
+    def _get_flow(self):
+        """
+        Retrieve the flow (vehicles per hour) of every edges/lanes
+        """
+        counter_entered = 0
+        #Returns the list of ids of vehicles that were on the named edge in the last simulation step.
+        ids_N = traci.edge.getLastStepVehicleIDs("N2TL")
+        ids_S = traci.edge.getLastStepVehicleIDs("S2TL")
+        ids_W = traci.edge.getLastStepVehicleIDs("W2TL")
+        ids_E = traci.edge.getLastStepVehicleIDs("E2TL")
+        car_list = ids_N + ids_S + ids_W + ids_E
         for car_id in car_list:
-            lane_pos = traci.vehicle.getLanePosition(car_id)
-            lane_id = traci.vehicle.getLaneID(car_id)
-            lane_pos = 750 - lane_pos  # inversion of lane pos, so if the car is close to the traffic light -> lane_pos = 0 --- 750 = max len of a road
+            if car_id not in self._already_in:
+                counter_entered+=1
+                self._already_in.append(car_id)
+        return counter_entered
+                
+        
 
-            # distance in meters from the traffic light -> mapping into cells
-            if lane_pos < 7:
-                lane_cell = 0
-            elif lane_pos < 14:
-                lane_cell = 1
-            elif lane_pos < 21:
-                lane_cell = 2
-            elif lane_pos < 28:
-                lane_cell = 3
-            elif lane_pos < 40:
-                lane_cell = 4
-            elif lane_pos < 60:
-                lane_cell = 5
-            elif lane_pos < 100:
-                lane_cell = 6
-            elif lane_pos < 160:
-                lane_cell = 7
-            elif lane_pos < 400:
-                lane_cell = 8
-            elif lane_pos <= 750:
-                lane_cell = 9
-
-            # finding the lane where the car is located 
-            # x2TL_3 are the "turn left only" lanes
-            if lane_id == "W2TL_0" or lane_id == "W2TL_1" or lane_id == "W2TL_2":
-                lane_group = 0
-            elif lane_id == "W2TL_3":
-                lane_group = 1
-            elif lane_id == "N2TL_0" or lane_id == "N2TL_1" or lane_id == "N2TL_2":
-                lane_group = 2
-            elif lane_id == "N2TL_3":
-                lane_group = 3
-            elif lane_id == "E2TL_0" or lane_id == "E2TL_1" or lane_id == "E2TL_2":
-                lane_group = 4
-            elif lane_id == "E2TL_3":
-                lane_group = 5
-            elif lane_id == "S2TL_0" or lane_id == "S2TL_1" or lane_id == "S2TL_2":
-                lane_group = 6
-            elif lane_id == "S2TL_3":
-                lane_group = 7
-            else:
-                lane_group = -1
-
-            if lane_group >= 1 and lane_group <= 7:
-                car_position = int(str(lane_group) + str(lane_cell))  # composition of the two postion ID to create a number in interval 0-79
-                valid_car = True
-            elif lane_group == 0:
-                car_position = lane_cell
-                valid_car = True
-            else:
-                valid_car = False  # flag for not detecting cars crossing the intersection or driving away from it
-
-            if valid_car:
-                state[car_position] = 1  # write the position of the car car_id in the state array in the form of "cell occupied"
-
-        return state
     
     def _get_state_with_advanced_perception(self):
         """
-        Retrieve the state of the intersection from sumo, in the form of four arrays representing respectively :
+        Retrieve the state of the intersection from sumo, in the form of four arrays concatenated representing respectively :
         - the number of cars per each cell
         - the average speed of cars in each cell
-        - the cumulated waiting time per each cell
+        - the cumulated waiting time of vehicles per each cell
         - the number of queued cars per each cell
         """
         #Initialize the four arrays that will form our state representation
@@ -376,6 +358,14 @@ class Simulation:
                 y[i] = current_q  # Q(state) that includes the updated action value
 
             self._Model.train_batch(x, y)  # train the NN
+            self._model_training_loss.append(self._Model._training_loss)
+            
+            
+    def _calculate_avg_loss(self):
+        """
+        Calculate the average loss of the model depending on scenario
+        """
+        self._avg_loss = [sum(elts)/self._training_epochs for elts in zip(*self._total_loss)]
 
 
     def _save_episode_stats(self):
@@ -383,19 +373,42 @@ class Simulation:
         Save the stats of the episode to plot the graphs at the end of the session
         """
         self._reward_store.append(self._sum_neg_reward)  # how much negative reward in this episode
-        self._cumulative_wait_store.append(self._sum_waiting_time)  # total number of seconds waited by cars in this episode
+        #self._cumulative_wait_store.append(self._sum_waiting_time)  # total number of seconds waited by cars in this episode
+        self._cumulative_wait_store.append(self._cumulative_waiting_time) #cumulative wait time in this episode
         self._avg_queue_length_store.append(self._sum_queue_length / self._max_steps)  # average number of queued cars per step, in this episode
-
+        self._avg_wait_time_per_vehicle.append(self._cumulative_waiting_time/self._sum_queue_length) #how much time a vehicle wait in an episode
+        #self._avg_density.append(sum(self._density)/self._max_steps)
+        #self._avg_flow.append(sum(self._flow)/self._max_steps)
+        self._avg_density.append(self._density)
+        self._avg_flow.append(self._flow)
+        
+        
+    @property
+    def avg_density_and_flow(self):
+        self._avg_density = [sum(i)/self._max_steps for i in zip(*self._avg_density)]
+        d_max = max(self._avg_density) #maximum density
+        self._max_index = self._avg_density.index(d_max)
+        return self._avg_density[:self._max_index+1], [sum(i)/self._max_steps for i in zip(*self._avg_flow)][:self._max_index+1]
+        
+    @property
+    def avg_wait_time_per_vehicle(self):
+        return self._avg_wait_time_per_vehicle
+    
+    @property
+    def avg_loss(self):
+        return self._avg_loss
+    
+    @property
+    def min_loss(self):
+        return self._min_loss
 
     @property
     def reward_store(self):
         return self._reward_store
 
-
     @property
     def cumulative_wait_store(self):
         return self._cumulative_wait_store
-
 
     @property
     def avg_queue_length_store(self):

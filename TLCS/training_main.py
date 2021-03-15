@@ -176,6 +176,7 @@ if __name__ == "__main__":
     
     episode = 0
     timestamp_start = datetime.datetime.now()
+    config['total_episodes'] = 5
     while episode < config['total_episodes']:
         print("\n\nHigh-traffic scenario")
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
@@ -196,8 +197,6 @@ if __name__ == "__main__":
         simulation_time, training_time = Simulation_4.run(episode, epsilon)  # run the simulation
         print('Simulation time:', simulation_time, 's - Training time:', training_time, 's - Total:', round(simulation_time+training_time, 1), 's')
         
-        
-        
         episode += 1
 
     print("\n----- Start time:", timestamp_start)
@@ -213,6 +212,12 @@ if __name__ == "__main__":
     #Visualization.save_data_and_plot(data=Sim.avg_queue_length_store, filename='queue_low', xlabel='Episode', ylabel='Average queue length (vehicles)')
 
     
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.reward_store, Simulation_2.reward_store, Simulation_3.reward_store, Simulation_4.reward_store], filename='reward', xlabel='Episode', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.cumulative_wait_store, Simulation_2.cumulative_wait_store, Simulation_3.cumulative_wait_store, Simulation_4.cumulative_wait_store], filename='delay', xlabel='Episode', ylabel='Cumulative delay (s)', scenarios=['High', 'Low', 'EW', 'NS'])
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_queue_length_store, Simulation_2.avg_queue_length_store,  Simulation_3.avg_queue_length_store,  Simulation_4.avg_queue_length_store], filename='queue', xlabel='Episode', ylabel='Average queue length (vehicles)', scenarios=['High', 'low', 'EW', 'NS'])
+    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.reward_store, Simulation_2.reward_store, Simulation_3.reward_store, Simulation_4.reward_store], filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
+    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.cumulative_wait_store, Simulation_2.cumulative_wait_store, Simulation_3.cumulative_wait_store, Simulation_4.cumulative_wait_store], filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]', scenarios=['High', 'Low', 'EW', 'NS'])
+    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_queue_length_store, Simulation_2.avg_queue_length_store,  Simulation_3.avg_queue_length_store,  Simulation_4.avg_queue_length_store], filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]', scenarios=['High', 'Low', 'EW', 'NS'])
+    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_wait_time_per_vehicle, Simulation_2.avg_wait_time_per_vehicle,  Simulation_3.avg_wait_time_per_vehicle,  Simulation_4.avg_wait_time_per_vehicle], filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]', scenarios=['High', 'Low', 'EW', 'NS'])
+    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.min_loss, Simulation_2.min_loss,  Simulation_3.min_loss,  Simulation_4.min_loss], filename='min_loss', title="Minimum MAE loss of the model per episode", xlabel='Episodes', ylabel='Minimum MAE', scenarios=['High', 'Low', 'EW', 'NS'])
+    print("\nPlotting the fundamental traffic flow...")
+    Visualization.save_data_and_plot_fundamental_diagram(density_and_flow=[Sim.avg_density_and_flow, Simulation_2.avg_density_and_flow, Simulation_3.avg_density_and_flow, Simulation_4.avg_density_and_flow], filename='fundamental_diagram', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenarios=['High', 'Low', 'EW', 'NS'])
+    print("\nCalculating Average loss of model...")
+    Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_loss, Simulation_2.avg_loss, Simulation_3.avg_loss, Simulation_4.avg_loss], filename='loss', title="Average MAE loss of the model per episode", xlabel='Episodes', ylabel='Average MAE', scenarios=['High', 'Low', 'EW', 'NS'])
