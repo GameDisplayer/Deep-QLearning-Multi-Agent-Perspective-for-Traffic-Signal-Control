@@ -176,7 +176,6 @@ if __name__ == "__main__":
     
     episode = 0
     timestamp_start = datetime.datetime.now()
-    config['total_episodes'] = 5
     while episode < config['total_episodes']:
         print("\n\nHigh-traffic scenario")
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
@@ -211,7 +210,6 @@ if __name__ == "__main__":
     #Visualization.save_data_and_plot(data=Sim.cumulative_wait_store, filename='delay_low', xlabel='Episode', ylabel='Cumulative delay (s)')
     #Visualization.save_data_and_plot(data=Sim.avg_queue_length_store, filename='queue_low', xlabel='Episode', ylabel='Average queue length (vehicles)')
 
-    
     Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.reward_store, Simulation_2.reward_store, Simulation_3.reward_store, Simulation_4.reward_store], filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
     Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.cumulative_wait_store, Simulation_2.cumulative_wait_store, Simulation_3.cumulative_wait_store, Simulation_4.cumulative_wait_store], filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]', scenarios=['High', 'Low', 'EW', 'NS'])
     Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_queue_length_store, Simulation_2.avg_queue_length_store,  Simulation_3.avg_queue_length_store,  Simulation_4.avg_queue_length_store], filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]', scenarios=['High', 'Low', 'EW', 'NS'])
