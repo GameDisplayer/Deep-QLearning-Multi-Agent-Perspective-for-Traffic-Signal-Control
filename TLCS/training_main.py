@@ -19,33 +19,29 @@ if __name__ == "__main__":
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     path = set_train_path(config['models_path_name'])
     
-    config_2 = import_train_configuration(config_file='training_settings_2.ini')
-    config_3 = import_train_configuration(config_file='training_settings_3.ini')
-    config_4 = import_train_configuration(config_file='training_settings_4.ini')
-    
     #High
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated']
+        config['n_cars_generated_high']
     )
     
     #Low
     TrafficGen_2 = TrafficGenerator(
-        config_2['max_steps'], 
-        config_2['n_cars_generated']
+        config['max_steps'], 
+        config['n_cars_generated_low']
     )
     
     #EW
     TrafficGen_3 = TrafficGenerator(
-        config_3['max_steps'], 
-        config_3['n_cars_generated'],
+        config['max_steps'], 
+        config['n_cars_generated_ew'],
         'EW'
     )
     
     #NS
     TrafficGen_4 = TrafficGenerator(
-        config_4['max_steps'], 
-        config_4['n_cars_generated'],
+        config['max_steps'], 
+        config['n_cars_generated_ns'],
         'NS'
     )
     
@@ -134,14 +130,14 @@ if __name__ == "__main__":
         Memory_2,
         TrafficGen_2,
         sumo_cmd,
-        config_2['gamma'],
-        config_2['max_steps'],
-        config_2['green_duration'],
-        config_2['yellow_duration'],
-        config_2['num_cells'],
-        config_2['num_states'],
-        config_2['num_actions'],
-        config_2['training_epochs']
+        config['gamma'],
+        config['max_steps'],
+        config['green_duration'],
+        config['yellow_duration'],
+        config['num_cells'],
+        config['num_states'],
+        config['num_actions'],
+        config['training_epochs']
     )
     
     Simulation_3 = Simulation(
@@ -149,14 +145,14 @@ if __name__ == "__main__":
         Memory_3,
         TrafficGen_3,
         sumo_cmd,
-        config_3['gamma'],
-        config_3['max_steps'],
-        config_3['green_duration'],
-        config_3['yellow_duration'],
-        config_3['num_cells'],
-        config_3['num_states'],
-        config_3['num_actions'],
-        config_3['training_epochs']
+        config['gamma'],
+        config['max_steps'],
+        config['green_duration'],
+        config['yellow_duration'],
+        config['num_cells'],
+        config['num_states'],
+        config['num_actions'],
+        config['training_epochs']
     )
        
     Simulation_4 = Simulation(
@@ -164,14 +160,14 @@ if __name__ == "__main__":
         Memory_4,
         TrafficGen_4,
         sumo_cmd,
-        config_4['gamma'],
-        config_4['max_steps'],
-        config_4['green_duration'],
-        config_4['yellow_duration'],
-        config_4['num_cells'],
-        config_4['num_states'],
-        config_4['num_actions'],
-        config_4['training_epochs']
+        config['gamma'],
+        config['max_steps'],
+        config['green_duration'],
+        config['yellow_duration'],
+        config['num_cells'],
+        config['num_states'],
+        config['num_actions'],
+        config['training_epochs']
     )
     
     episode = 0
