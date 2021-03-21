@@ -73,6 +73,9 @@ class TrainModel:
         self._model.save(os.path.join(path, 'trained_model.h5'))
         #plot_model(self._model, to_file=os.path.join(path, 'model_structure.png'), show_shapes=True, show_layer_names=True)
 
+    @property
+    def training_loss(self):
+        return self._training_loss
 
     @property
     def input_dim(self):

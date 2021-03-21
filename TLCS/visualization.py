@@ -67,7 +67,7 @@ class Visualization:
                 for value in list_of_data[i]:
                         file.write("%s\n" % value)
                         
-    def save_data_and_plot_fundamental_diagram(self, density_and_flow, filename, xlabel, ylabel, scenarios): 
+    def save_data_and_plot_multiple_fundamental_diagram(self, density_and_flow, filename, xlabel, ylabel, scenarios): 
         """
         Produce a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
         """
@@ -111,5 +111,43 @@ class Visualization:
             with open(os.path.join(self._path, 'plot_'+filename + '_data_density' + scenarios[i] + '.txt'), "w") as file:
                 for value in density[i]:
                         file.write("%s\n" % value)
+                        
+                        
+                        
+                        
+    def save_data_and_plot_fundamental_diagram(self, density_and_flow, filename, xlabel, ylabel, scenario): 
+        """
+        Produce a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
+        """
+        
+        density, flow = density_and_flow
+        
+        min_val = min(flow)
+        max_val = max(flow)
+
+        plt.rcParams.update({'font.size': 24})  # set bigger font size
+
+        plt.title("Fundamental diagram of traffic flow")
+        plt.scatter(density, flow, color="r", label=scenario)
+        plt.legend(framealpha=1, frameon=True)
+        plt.ylabel(ylabel)
+        plt.xlabel(xlabel)
+        plt.margins(0.05)
+        plt.ylim(min_val - 0.05 * abs(min_val), max_val + 0.05 * abs(max_val))
+
+
+        fig = plt.gcf()
+        fig.set_size_inches(20, 11.25)
+        fig.savefig(os.path.join(self._path, 'plot_'+filename+'.png'), dpi=self._dpi)
+        plt.close("all")
+
+
+        with open(os.path.join(self._path, 'plot_'+filename + '_data_flow' + scenario + '.txt'), "w") as file:
+            for value in flow:
+                file.write("%s\n" % value)
+                        
+        with open(os.path.join(self._path, 'plot_'+filename + '_data_density' + scenario + '.txt'), "w") as file:
+            for value in density:
+                file.write("%s\n" % value)
         
     

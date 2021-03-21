@@ -37,6 +37,8 @@ class Simulation:
         self._avg_loss = []
         self._avg_wait_time_per_vehicle = []
         self._min_loss = []
+        self._list_density = []
+        self._list_flow = []
         self._avg_density = []
         self._avg_flow = []
 
@@ -358,7 +360,7 @@ class Simulation:
                 y[i] = current_q  # Q(state) that includes the updated action value
 
             self._Model.train_batch(x, y)  # train the NN
-            self._model_training_loss.append(self._Model._training_loss)
+            self._model_training_loss.append(self._Model.training_loss) #get the MAE loss 
             
             
     def _calculate_avg_loss(self):
@@ -377,19 +379,24 @@ class Simulation:
         self._cumulative_wait_store.append(self._cumulative_waiting_time) #cumulative wait time in this episode
         self._avg_queue_length_store.append(self._sum_queue_length / self._max_steps)  # average number of queued cars per step, in this episode
         self._avg_wait_time_per_vehicle.append(self._cumulative_waiting_time/self._sum_queue_length) #how much time a vehicle wait in an episode
-        #self._avg_density.append(sum(self._density)/self._max_steps)
-        #self._avg_flow.append(sum(self._flow)/self._max_steps)
-        self._avg_density.append(self._density)
-        self._avg_flow.append(self._flow)
+        self._list_density.append(self._density)
+        self._list_flow.append(self._flow)
         
         
     @property
     def avg_density_and_flow(self):
-        self._avg_density = [sum(i)/self._max_steps for i in zip(*self._avg_density)]
-        d_max = max(self._avg_density) #maximum density
-        self._max_index = self._avg_density.index(d_max)
-        return self._avg_density[:self._max_index+1], [sum(i)/self._max_steps for i in zip(*self._avg_flow)][:self._max_index+1]
+        avg_den = [sum(i)/self._max_steps for i in zip(*self._list_density)]
+        d_max = max(avg_den) #maximum density
+        self._max_index = avg_den.index(d_max)
+        self._avg_density = avg_den[:self._max_index+1]
+        self._avg_flow = [sum(i)/self._max_steps for i in zip(*self._list_flow)][:self._max_index+1]
+        return self._avg_density, self._avg_flow
         
+    @property
+    def get_avg_density_and_flow(self):
+        return self._avg_density, self._avg_flow
+    
+    
     @property
     def avg_wait_time_per_vehicle(self):
         return self._avg_wait_time_per_vehicle

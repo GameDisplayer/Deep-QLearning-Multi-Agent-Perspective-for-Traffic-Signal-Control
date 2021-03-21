@@ -46,6 +46,7 @@ if __name__ == "__main__":
     )
     
 
+    #Agent
     Model = TrainModel(
         config['num_layers'], 
         config['width_layers'], 
@@ -54,55 +55,10 @@ if __name__ == "__main__":
         input_dim=config['num_states'], 
         output_dim=config['num_actions']
     )
-    
-    Model_2 = TrainModel(
-        config['num_layers'], 
-        config['width_layers'], 
-        config['batch_size'], 
-        config['learning_rate'], 
-        input_dim=config['num_states'], 
-        output_dim=config['num_actions']
-    )
-    
-    Model_3 = TrainModel(
-        config['num_layers'], 
-        config['width_layers'], 
-        config['batch_size'], 
-        config['learning_rate'], 
-        input_dim=config['num_states'], 
-        output_dim=config['num_actions']
-    )
-    
-    Model_4 = TrainModel(
-        config['num_layers'], 
-        config['width_layers'], 
-        config['batch_size'], 
-        config['learning_rate'], 
-        input_dim=config['num_states'], 
-        output_dim=config['num_actions']
-    )
-
-
     Mem = Memory(
         config['memory_size_max'], 
         config['memory_size_min']
     )
-    
-    Memory_2 = Memory(
-        config['memory_size_max'], 
-        config['memory_size_min']
-    )
-    
-    Memory_3 = Memory(
-        config['memory_size_max'], 
-        config['memory_size_min']
-    )
-    
-    Memory_4 = Memory(
-        config['memory_size_max'], 
-        config['memory_size_min']
-    )
-
    
     #Same visualization
     Visualization = Visualization(
@@ -126,8 +82,8 @@ if __name__ == "__main__":
     )
     
     Simulation_2 = Simulation(
-        Model_2,
-        Memory_2,
+        Model,
+        Mem,
         TrafficGen_2,
         sumo_cmd,
         config['gamma'],
@@ -141,8 +97,8 @@ if __name__ == "__main__":
     )
     
     Simulation_3 = Simulation(
-        Model_3,
-        Memory_3,
+        Model,
+        Mem,
         TrafficGen_3,
         sumo_cmd,
         config['gamma'],
@@ -156,8 +112,8 @@ if __name__ == "__main__":
     )
        
     Simulation_4 = Simulation(
-        Model_4,
-        Memory_4,
+        Model,
+        Mem,
         TrafficGen_4,
         sumo_cmd,
         config['gamma'],
@@ -211,7 +167,13 @@ if __name__ == "__main__":
     Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_queue_length_store, Simulation_2.avg_queue_length_store,  Simulation_3.avg_queue_length_store,  Simulation_4.avg_queue_length_store], filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]', scenarios=['High', 'Low', 'EW', 'NS'])
     Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_wait_time_per_vehicle, Simulation_2.avg_wait_time_per_vehicle,  Simulation_3.avg_wait_time_per_vehicle,  Simulation_4.avg_wait_time_per_vehicle], filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]', scenarios=['High', 'Low', 'EW', 'NS'])
     Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.min_loss, Simulation_2.min_loss,  Simulation_3.min_loss,  Simulation_4.min_loss], filename='min_loss', title="Minimum MAE loss of the model per episode", xlabel='Episodes', ylabel='Minimum MAE', scenarios=['High', 'Low', 'EW', 'NS'])
-    print("\nPlotting the fundamental traffic flow...")
-    Visualization.save_data_and_plot_fundamental_diagram(density_and_flow=[Sim.avg_density_and_flow, Simulation_2.avg_density_and_flow, Simulation_3.avg_density_and_flow, Simulation_4.avg_density_and_flow], filename='fundamental_diagram', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenarios=['High', 'Low', 'EW', 'NS'])
+    print("\nPlotting the fundamental diagrams of traffic flow depending on the scenario...")
+    Visualization.save_data_and_plot_fundamental_diagram(density_and_flow=Sim.avg_density_and_flow, filename='fundamental_diagram_High', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='High')
+    Visualization.save_data_and_plot_fundamental_diagram(density_and_flow=Simulation_2.avg_density_and_flow, filename='fundamental_diagram_Low', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='Low')
+    Visualization.save_data_and_plot_fundamental_diagram(density_and_flow=Simulation_3.avg_density_and_flow, filename='fundamental_diagram_EW', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='EW')
+    Visualization.save_data_and_plot_fundamental_diagram(density_and_flow=Simulation_4.avg_density_and_flow, filename='fundamental_diagram_NS', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='NS')
+
     print("\nCalculating Average loss of model...")
     Visualization.save_data_and_plot_multiple_curves(list_of_data=[Sim.avg_loss, Simulation_2.avg_loss, Simulation_3.avg_loss, Simulation_4.avg_loss], filename='loss', title="Average MAE loss of the model per episode", xlabel='Episodes', ylabel='Average MAE', scenarios=['High', 'Low', 'EW', 'NS'])
+
+    Visualization.save_data_and_plot_multiple_fundamental_diagram(density_and_flow=[Sim.get_avg_density_and_flow, Simulation_2.get_avg_density_and_flow, Simulation_3.get_avg_density_and_flow, Simulation_4.get_avg_density_and_flow], filename='fundamental_diagram', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenarios=['High', 'Low', 'EW', 'NS'])
