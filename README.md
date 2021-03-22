@@ -9,8 +9,21 @@ The thesis is aimed at, first, studying the experimental setup and baseline appr
 
 The project goal would, then, be the passage to a multi-agent perspective by implementing two agents independently learning within the traffic environment and analysing their behaviors.
 
-## Step-by-step goals :
+## Getting started
 
-- [ ] Change the state perception of the agent by adding more information (number of cars, average speed, cumulated waiting time, number of queued cars...) and compare with static light traffic.
+The steps you have to follow are perfectly described [here](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control#getting-started).
+
+However if you have a hard time running the code on your GPU (version compatibility is the worst thing)
+Take a look at [this table](https://www.tensorflow.org/install/source_windows#gpu) from the official tensorflow documentation. You must have the right versions of `CUDA` and `cuDNN` corresponding to the ones of `tensorflow-gpu` and `python`.
+
+Here is the list of the conda package I use to run on an NVIDIA RTX 2070 Max-Q :
+```
+python : 3.8.8
+tensorflow-gpu : 2.4.0
+cudatoolkit : 11.0
+cudnn : 8.1.1
+```
+
+> Note : it is possible that anaconda does not have the latest version of `cudnn` available. If this is the case, you can download it on the [official NVIDA website](https://developer.nvidia.com/rdp/cudnn-download) and paste the dll files in `C:\Users\<name>\anaconda3\envs\<env name>\Library\bin`.
 
 
