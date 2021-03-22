@@ -2,7 +2,9 @@ import traci
 import numpy as np
 import random
 import timeit
-import os
+import os, sys
+import pickle
+import multiprocessing as mp
 
 # phase codes based on environment.net.xml
 PHASE_NS_GREEN = 0  # action 0 code 00
@@ -15,8 +17,13 @@ PHASE_EWL_GREEN = 6  # action 3 code 11
 PHASE_EWL_YELLOW = 7
 
 
-class Simulation:
-    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, training_epochs):
+class Simulation(mp.Process):
+    def __init__(self, episode, epsilon, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, training_epochs):
+        mp.Process.__init__(self)
+        
+        self.episode = episode
+        self.epsilon = epsilon
+        
         self._Model = Model
         self._Memory = Memory
         self._TrafficGen = TrafficGen
@@ -41,12 +48,17 @@ class Simulation:
         self._list_flow = []
         self._avg_density = []
         self._avg_flow = []
+        
 
 
-    def run(self, episode, epsilon):
+    def run(self):
         """
         Runs an episode of simulation, then starts a training session
         """
+        episode=self.episode
+        epsilon=self.epsilon
+        
+        print(self._Model)
         start_time = timeit.default_timer()
 
         # first, generate the route file for this simulation and set up sumo
@@ -114,19 +126,19 @@ class Simulation:
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
 
-        print("Training...")
-        start_time = timeit.default_timer()
-        for _ in range(self._training_epochs):
-            self._replay()
-        training_time = round(timeit.default_timer() - start_time, 1)
+        # print("Training...")
+        # start_time = timeit.default_timer()
+        # for _ in range(self._training_epochs):
+        #     self._replay()
+        # training_time = round(timeit.default_timer() - start_time, 1)
         
-        if(len(self._model_training_loss) > 0):
-            print("Saving loss results...")
-            #print(self._model_training_loss)
-            self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
-            self._min_loss.append(min(self._model_training_loss))
+        # if(len(self._model_training_loss) > 0):
+        #     print("Saving loss results...")
+        #     #print(self._model_training_loss)
+        #     self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
+        #     self._min_loss.append(min(self._model_training_loss))
 
-        return simulation_time, training_time
+        return simulation_time#, training_time
 
 
     def _simulate(self, steps_todo):
@@ -420,4 +432,4 @@ class Simulation:
     @property
     def avg_queue_length_store(self):
         return self._avg_queue_length_store
-
+    

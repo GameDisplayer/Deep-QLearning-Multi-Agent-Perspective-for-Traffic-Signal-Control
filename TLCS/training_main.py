@@ -99,20 +99,22 @@ if __name__ == "__main__":
         config['training_epochs']
     )
     
-    # Simulation_2 = Simulation(
-    #     Model,
-    #     Mem,
-    #     TrafficGen_2,
-    #     sumo_cmd,
-    #     config['gamma'],
-    #     config['max_steps'],
-    #     config['green_duration'],
-    #     config['yellow_duration'],
-    #     config['num_cells'],
-    #     config['num_states'],
-    #     config['num_actions'],
-    #     config['training_epochs']
-    # )
+    Simulation_2 = Simulation(
+        None,
+        None,
+        None,
+        Mem,
+        TrafficGen_2,
+        sumo_cmd,
+        config['gamma'],
+        config['max_steps'],
+        config['green_duration'],
+        config['yellow_duration'],
+        config['num_cells'],
+        config['num_states'],
+        config['num_actions'],
+        config['training_epochs']
+    )
     
     # Simulation_3 = Simulation(
     #     Model,
@@ -146,36 +148,45 @@ if __name__ == "__main__":
     
 
 
-    # episode = 0
-    # timestamp_start = datetime.datetime.now()
-    # config['total_episodes'] = 5
-    # while episode < config['total_episodes']:
+    episode = 0
+    timestamp_start = datetime.datetime.now()
+    config['total_episodes'] = 5
+    while episode < config['total_episodes']:
         
-    #     print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
-    #     epsilon = 1.0 - (episode / config['total_episodes'])  # set the epsilon for this episode according to epsilon-greedy policy
+        print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
+        epsilon = 1.0 - (episode / config['total_episodes'])  # set the epsilon for this episode according to epsilon-greedy policy
         
 
-    #     print("Hey")
-    #     Sim.epsilon = epsilon
-    #     Sim.episode = episode
-    #     model = mp.JoinableQueue()
-    #     Sim._Model = model
-    #     print("JO")
+        model = mp.JoinableQueue()
         
-    #     Sim.start()
-    #     print("TY")
-    #     model.put(Model)
-    #     print("U")
-    #     model.join()
+        print("Hey")
+        Sim.epsilon = epsilon
+        Sim.episode = episode
+        Simulation_2.epsilon = epsilon
+        Simulation_2.episode = episode
+        
+        
+        Sim._Model = model
+        Simulation_2._Model = model
+        
+        print("JO")
+        Sim.start()
+        Simulation_2.start()
+        
+        print("TY")
+        model.put(Model)
+        
+        print("U")
+        model.join()
         
         
       
             
-    #     episode += 1
+        episode += 1
 
-    # print("\n----- Start time:", timestamp_start)
-    # print("----- End time:", datetime.datetime.now())
-    # print("----- Session info saved at:", path)
+    print("\n----- Start time:", timestamp_start)
+    print("----- End time:", datetime.datetime.now())
+    print("----- Session info saved at:", path)
 
     # Model.save_model(path)
 
