@@ -2,9 +2,9 @@ import traci
 import numpy as np
 import random
 import timeit
-import os, sys
-import pickle
-import multiprocessing as mp
+import requests
+import json
+
 
 # phase codes based on environment.net.xml
 PHASE_NS_GREEN = 0  # action 0 code 00
@@ -17,15 +17,11 @@ PHASE_EWL_GREEN = 6  # action 3 code 11
 PHASE_EWL_YELLOW = 7
 
 
-class Simulation(mp.Process):
-    def __init__(self, episode, epsilon, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, training_epochs):
-        mp.Process.__init__(self)
+class Simulation():
+    def __init__(self, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, training_epochs):
         
-        self.episode = episode
-        self.epsilon = epsilon
-        
-        self._Model = Model
-        self._Memory = Memory
+        #self._Model = Model
+        #self._Memory = Memory
         self._TrafficGen = TrafficGen
         self._gamma = gamma
         self._step = 0
@@ -51,14 +47,11 @@ class Simulation(mp.Process):
         
 
 
-    def run(self):
+    def run(self, episode, epsilon):
         """
         Runs an episode of simulation, then starts a training session
         """
-        episode=self.episode
-        epsilon=self.epsilon
         
-        print(self._Model)
         start_time = timeit.default_timer()
 
         # first, generate the route file for this simulation and set up sumo
@@ -97,7 +90,13 @@ class Simulation(mp.Process):
 
             # saving the data into the memory
             if self._step != 0:
-                self._Memory.add_sample((old_state, old_action, reward, current_state))
+                #self._Memory.add_sample((old_state, old_action, reward, current_state))
+                #print(type(old_state), type(old_action), type(reward), type(current_state))
+                #print(type(old_state.tolist()))
+                requests.post('http://127.0.0.1:5000/add_sample', json={'old_state':  old_state.tolist(),
+                                                                    'old_action': int(old_action),
+                                                                    'reward': reward,
+                                                                    'current_state': current_state.tolist()})
 
             # choose the light phase to activate, based on the current state of the intersection
             action = self._choose_action(current_state, epsilon)
@@ -126,19 +125,24 @@ class Simulation(mp.Process):
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
 
-        # print("Training...")
-        # start_time = timeit.default_timer()
-        # for _ in range(self._training_epochs):
-        #     self._replay()
-        # training_time = round(timeit.default_timer() - start_time, 1)
+        print("Training...")
+        start_time = timeit.default_timer()
+        for _ in range(self._training_epochs):
+            #self._replay()
+            tr_loss = requests.post('http://127.0.0.1:5000/replay', json={'num_states': self._num_states,
+                                                              'num_actions': self._num_actions,
+                                                              'gamma': self._gamma}).json()['loss']
+            #print(tr_loss)
+            self._model_training_loss.append(tr_loss)
+        training_time = round(timeit.default_timer() - start_time, 1)
         
-        # if(len(self._model_training_loss) > 0):
-        #     print("Saving loss results...")
-        #     #print(self._model_training_loss)
-        #     self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
-        #     self._min_loss.append(min(self._model_training_loss))
+        if(len(self._model_training_loss) > 0):
+            print("Saving loss results...")
+            #print(self._model_training_loss)
+            self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
+            self._min_loss.append(min(self._model_training_loss))
 
-        return simulation_time#, training_time
+        return simulation_time, training_time
 
 
     def _simulate(self, steps_todo):
@@ -182,7 +186,9 @@ class Simulation(mp.Process):
         if random.random() < epsilon:
             return random.randint(0, self._num_actions - 1) # random action
         else:
-            return np.argmax(self._Model.predict_one(state)) # the best action given the current state
+            pred = np.array(requests.post('http://127.0.0.1:5000/predict', json={'state': state.tolist()}).json()['prediction'])
+            return np.argmax(pred)
+            #return np.argmax(self._Model.predict_one(state)) # the best action given the current state
 
 
     def _set_yellow_phase(self, old_action):
@@ -408,7 +414,6 @@ class Simulation(mp.Process):
     def get_avg_density_and_flow(self):
         return self._avg_density, self._avg_flow
     
-    
     @property
     def avg_wait_time_per_vehicle(self):
         return self._avg_wait_time_per_vehicle
@@ -432,4 +437,18 @@ class Simulation(mp.Process):
     @property
     def avg_queue_length_store(self):
         return self._avg_queue_length_store
+    
+    @property
+    def density(self):
+        return self._density
+    
+    @property
+    def flow(self):
+        return self._flow
+    
+    
+    #End simulation
+    def stop(self):
+        return self.reward_store[0], self.cumulative_wait_store[0], self.avg_queue_length_store[0], self.avg_wait_time_per_vehicle[0], self.min_loss[0], self.avg_loss[0], self.density, self.flow
+ 
     

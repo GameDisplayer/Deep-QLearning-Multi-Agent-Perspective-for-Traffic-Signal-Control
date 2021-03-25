@@ -12,8 +12,21 @@ from tensorflow.keras.utils import plot_model
 from tensorflow.keras.models import load_model
 
 
+# Keras GPU utilization settings
+import tensorflow as tf
+# Avoid warning about tensorflow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+config = tf.compat.v1.ConfigProto()
+# dynamically grow the memory used on the GPU
+config.gpu_options.allow_growth = True
+# To log device placement (on which device the operation ran)
+# config.log_device_placement = True
+sess = tf.compat.v1.Session(config=config)
+
+
 class TrainModel:
     def __init__(self, num_layers, width, batch_size, learning_rate, input_dim, output_dim):
+        self._width = width
         self._input_dim = input_dim
         self._output_dim = output_dim
         self._batch_size = batch_size
@@ -44,7 +57,7 @@ class TrainModel:
     def predict_one(self, state):
         """
         Predict the action values from a single state
-        """
+        """     
         state = np.reshape(state, [1, self._input_dim])
         return self._model.predict(state)
 
