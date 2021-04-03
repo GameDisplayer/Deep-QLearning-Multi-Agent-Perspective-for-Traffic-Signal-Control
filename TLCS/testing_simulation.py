@@ -3,6 +3,7 @@ import numpy as np
 import random
 import timeit
 import os
+import re
 
 # phase codes based on environment.net.xml
 PHASE_NS_GREEN = 0  # action 0 code 00
@@ -16,7 +17,7 @@ PHASE_EWL_YELLOW = 7
 
 
 class Simulation:
-    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions):
+    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, n_cars):
         self._Model = Model
         self._TrafficGen = TrafficGen
         self._step = 0
@@ -27,8 +28,10 @@ class Simulation:
         self._num_cells = num_cells
         self._num_states = num_states
         self._num_actions = num_actions
+        self._n_cars = n_cars
         self._reward_episode = []
         self._queue_length_episode = []
+        
 
 
     def run(self, episode):
@@ -47,7 +50,14 @@ class Simulation:
         self._waiting_times = {}
         old_total_wait = 0
         old_action = -1 # dummy init
-
+        
+        #Metrics
+        self._sum_neg_reward = 0
+        self._sum_queue_length = 0
+        self._waits = [0 for i in range(self._n_cars)]
+        
+        action_rotation=[0,1,2,3]
+        ar=0
         while self._step < self._max_steps:
 
             # get current state of the intersection
@@ -60,6 +70,14 @@ class Simulation:
 
             # choose the light phase to activate, based on the current state of the intersection
             action = self._choose_action(current_state)
+            
+            # action = action_rotation[ar]
+            # print(action)
+            # if (ar==3): 
+            #     ar=0
+            # else:
+            #     ar+=1
+            
 
             # if the chosen phase is different from the last phase, activate the yellow phase
             if self._step != 0 and old_action != action:
@@ -73,10 +91,14 @@ class Simulation:
             # saving variables for later & accumulate reward
             old_action = action
             old_total_wait = current_total_wait
+            
+            if reward < 0:
+                self._sum_neg_reward += reward
 
             self._reward_episode.append(reward)
 
-        #print("Total reward:", np.sum(self._reward_episode))
+        #print("Total reward:", np.sum(self._reward_episode))  
+        
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
 
@@ -95,7 +117,19 @@ class Simulation:
             self._step += 1 # update the step counter
             steps_todo -= 1
             queue_length = self._get_queue_length() 
+            self._sum_queue_length += queue_length
             self._queue_length_episode.append(queue_length)
+            self._get_waiting_vehicles()
+            
+            
+    def _get_waiting_vehicles(self):
+        car_list = traci.vehicle.getIDList()
+        for car_id in car_list:
+            i = int(re.findall(r'\d+', car_id)[0])
+            if traci.vehicle.getWaitingTime(car_id) > 0 and self._waits[i] == 0:
+                self._waits[i] += 1
+        #print(sum(self._waits))
+                
 
 
     def _collect_waiting_times(self):
@@ -158,75 +192,6 @@ class Simulation:
         queue_length = halt_N + halt_S + halt_E + halt_W
         return queue_length
 
-
-    def _get_state(self):
-        """
-        Retrieve the state of the intersection from sumo, in the form of cell occupancy
-        """
-        state = np.zeros(self._num_states)
-        car_list = traci.vehicle.getIDList()
-
-        for car_id in car_list:
-            lane_pos = traci.vehicle.getLanePosition(car_id)
-            lane_id = traci.vehicle.getLaneID(car_id)
-            lane_pos = 750 - lane_pos  # inversion of lane pos, so if the car is close to the traffic light -> lane_pos = 0 --- 750 = max len of a road
-
-            # distance in meters from the traffic light -> mapping into cells
-            if lane_pos < 7:
-                lane_cell = 0
-            elif lane_pos < 14:
-                lane_cell = 1
-            elif lane_pos < 21:
-                lane_cell = 2
-            elif lane_pos < 28:
-                lane_cell = 3
-            elif lane_pos < 40:
-                lane_cell = 4
-            elif lane_pos < 60:
-                lane_cell = 5
-            elif lane_pos < 100:
-                lane_cell = 6
-            elif lane_pos < 160:
-                lane_cell = 7
-            elif lane_pos < 400:
-                lane_cell = 8
-            elif lane_pos <= 750:
-                lane_cell = 9
-
-            # finding the lane where the car is located 
-            # x2TL_3 are the "turn left only" lanes
-            if lane_id == "W2TL_0" or lane_id == "W2TL_1" or lane_id == "W2TL_2":
-                lane_group = 0
-            elif lane_id == "W2TL_3":
-                lane_group = 1
-            elif lane_id == "N2TL_0" or lane_id == "N2TL_1" or lane_id == "N2TL_2":
-                lane_group = 2
-            elif lane_id == "N2TL_3":
-                lane_group = 3
-            elif lane_id == "E2TL_0" or lane_id == "E2TL_1" or lane_id == "E2TL_2":
-                lane_group = 4
-            elif lane_id == "E2TL_3":
-                lane_group = 5
-            elif lane_id == "S2TL_0" or lane_id == "S2TL_1" or lane_id == "S2TL_2":
-                lane_group = 6
-            elif lane_id == "S2TL_3":
-                lane_group = 7
-            else:
-                lane_group = -1
-
-            if lane_group >= 1 and lane_group <= 7:
-                car_position = int(str(lane_group) + str(lane_cell))  # composition of the two postion ID to create a number in interval 0-79
-                valid_car = True
-            elif lane_group == 0:
-                car_position = lane_cell
-                valid_car = True
-            else:
-                valid_car = False  # flag for not detecting cars crossing the intersection or driving away from it
-
-            if valid_car:
-                state[car_position] = 1  # write the position of the car car_id in the state array in the form of "cell occupied"
-
-        return state
     
     def _get_state_with_advanced_perception(self):
         """

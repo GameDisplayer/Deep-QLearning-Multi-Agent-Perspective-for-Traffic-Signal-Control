@@ -7,7 +7,7 @@ class Visualization:
             self._dpi = dpi
 
 
-    def save_data_and_plot(self, data, filename, xlabel, ylabel):
+    def save_data_and_plot(self, data, filename, title, xlabel, ylabel):
         """
         Produce a plot of performance of the agent over the session and save the relative data to txt
         """
@@ -16,6 +16,7 @@ class Visualization:
 
         plt.rcParams.update({'font.size': 24})  # set bigger font size
 
+        plt.title(title)
         plt.plot(data)
         plt.ylabel(ylabel)
         plt.xlabel(xlabel)

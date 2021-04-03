@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 #Random agent hyperparameters
 num_layers = 4
-width_layers = 400
+width_layers = 480
 batch_size = 100
 learning_rate = 0.001
 training_epochs = 800

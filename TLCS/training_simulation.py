@@ -83,6 +83,7 @@ class Simulation():
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             current_total_wait = self._collect_waiting_times()
             reward = old_total_wait - current_total_wait
+            #reward = (0.9 * old_total_wait) - current_total_wait
             
             self._cumulative_waiting_time+= current_total_wait
             self._flow.append(self._get_flow())
@@ -125,27 +126,27 @@ class Simulation():
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
 
-        print("Training...")
-        start_time = timeit.default_timer()
-        for _ in range(self._training_epochs):
-            #self._replay()
-            tr_loss = requests.post('http://127.0.0.1:5000/replay', json={'num_states': self._num_states,
-                                                              'num_actions': self._num_actions,
-                                                              'gamma': self._gamma}).json()['loss']
-            #print(tr_loss)
-            self._model_training_loss.append(tr_loss)
-        training_time = round(timeit.default_timer() - start_time, 1)
+        # print("Training...")
+        # start_time = timeit.default_timer()
+        # for _ in range(self._training_epochs):
+        #     #self._replay()
+        #     tr_loss = requests.post('http://127.0.0.1:5000/replay', json={'num_states': self._num_states,
+        #                                                       'num_actions': self._num_actions,
+        #                                                       'gamma': self._gamma}).json()['loss']
+        #     #print(tr_loss)
+        #     self._model_training_loss.append(tr_loss)
+        # training_time = round(timeit.default_timer() - start_time, 1)
         
-        if(len(self._model_training_loss) > 0):
-            print("Saving loss results...")
-            #print(self._model_training_loss)
-            self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
-            self._min_loss.append(min(self._model_training_loss))
+        # if(len(self._model_training_loss) > 0):
+        #     print("Saving loss results...")
+        #     #print(self._model_training_loss)
+        #     self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
+        #     self._min_loss.append(min(self._model_training_loss))
 
-        return simulation_time, training_time
+        return simulation_time#, training_time
 
 
-    def _simulate(self, steps_todo):
+    def _simulate(self, steps_todo):    
         """
         Execute steps in sumo while gathering statistics
         """
@@ -449,6 +450,6 @@ class Simulation():
     
     #End simulation
     def stop(self):
-        return self.reward_store[0], self.cumulative_wait_store[0], self.avg_queue_length_store[0], self.avg_wait_time_per_vehicle[0], self.min_loss[0], self.avg_loss[0], self.density, self.flow
+        return self.reward_store[0], self.cumulative_wait_store[0], self.avg_queue_length_store[0], self.avg_wait_time_per_vehicle[0],self.density, self.flow #self.min_loss[0], self.avg_loss[0], 
  
     
