@@ -68,15 +68,15 @@ class Visualization:
                 for value in list_of_data[i]:
                         file.write("%s\n" % value)
                         
-    def save_data_and_plot_multiple_fundamental_diagram(self, density_and_flow, filename, xlabel, ylabel, scenarios): 
+    def save_data_and_plot_multiple_fundamental_diagram(self, data, filename, xlabel, ylabel, scenarios): 
         """
         Produce a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
         """
         
-        d, f = density_and_flow[0]
-        d1, f1 = density_and_flow[1]
-        d2, f2 = density_and_flow[2]
-        d3, f3 = density_and_flow[3]
+        d, f = data[0]
+        d1, f1 = data[1]
+        d2, f2 = data[2]
+        d3, f3 = data[3]
         
         flow = [f, f1, f2, f3]
         density = [d, d1, d2, d3]
@@ -116,12 +116,12 @@ class Visualization:
                         
                         
                         
-    def save_data_and_plot_fundamental_diagram(self, density_and_flow, filename, xlabel, ylabel, scenario): 
+    def save_data_and_plot_fundamental_diagram(self, data, filename, xlabel, ylabel, scenario): 
         """
         Produce a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
         """
         
-        density, flow = density_and_flow
+        density, flow = data
         
         min_val = min(flow)
         max_val = max(flow)
