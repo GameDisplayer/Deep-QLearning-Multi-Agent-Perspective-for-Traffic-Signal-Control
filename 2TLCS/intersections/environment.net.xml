@@ -74,8 +74,22 @@
     <edge id=":TL_19" function="internal">
         <lane id=":TL_19_0" index="0" speed="11.36" length="29.67" shape="-16.80,-1.60 -8.75,-0.45 -3.00,3.00 0.45,8.75 1.60,16.80"/>
     </edge>
+    
+    <!-- Added -->
+    <edge id=":TL_20" function="internal">
+        <lane id=":TL_20_0" index="0" speed="6.51" length="9.03" shape="-16.80,-11.20 -14.35,-11.55 -12.60,-12.60 -11.55,-14.35 -11.20,-16.80"/>
+    </edge>
+    <edge id=":TL_21" function="internal">
+        <lane id=":TL_21_0" index="0" speed="13.89" length="33.60" shape="-16.80,-11.20 16.80,-11.20"/>
+        <lane id=":TL_21_1" index="1" speed="13.89" length="33.60" shape="-16.80,-8.00 16.80,-8.00"/>
+        <lane id=":TL_21_2" index="2" speed="13.89" length="33.60" shape="-16.80,-4.80 16.80,-4.80"/>
+    </edge>
+    <edge id=":TL_24" function="internal">
+        <lane id=":TL_24_0" index="0" speed="11.36" length="29.67" shape="-16.80,-1.60 -8.75,-0.45 -3.00,3.00 0.45,8.75 1.60,16.80"/>
+    </edge>
+    <!--/Added -->
 
-    <edge id="E2TL" from="DE" to="TL" priority="-1" length="750.00">
+    <edge id="E2TL" from="CENTER" to="TL" priority="-1" length="750.00">
         <lane id="E2TL_0" index="0" speed="13.89" length="750.00" shape="750.00,11.20 16.80,11.20"/>
         <lane id="E2TL_1" index="1" speed="13.89" length="750.00" shape="750.00,8.00 16.80,8.00"/>
         <lane id="E2TL_2" index="2" speed="13.89" length="750.00" shape="750.00,4.80 16.80,4.80"/>
@@ -93,7 +107,7 @@
         <lane id="S2TL_2" index="2" speed="13.89" length="750.00" shape="4.80,-750.00 4.80,-16.80"/>
         <lane id="S2TL_3" index="3" speed="13.89" length="750.00" shape="1.60,-750.00 1.60,-16.80"/>
     </edge>
-    <edge id="TL2E" from="TL" to="DE" priority="-1" length="750.00">
+    <edge id="TL2E" from="TL" to="CENTER" priority="-1" length="750.00">
         <lane id="TL2E_0" index="0" speed="13.89" length="750.00" shape="16.80,-11.20 750.00,-11.20"/>
         <lane id="TL2E_1" index="1" speed="13.89" length="750.00" shape="16.80,-8.00 750.00,-8.00"/>
         <lane id="TL2E_2" index="2" speed="13.89" length="750.00" shape="16.80,-4.80 750.00,-4.80"/>
@@ -127,18 +141,60 @@
     
     
     <!--Added -->
-    <edge id="2_W2TL" from ="DE" to="DD" priority="-1" length="750.00">
+    <edge id="2_W2TL" from ="CENTER" to="TL_2" priority="-1" length="750.00">
         <lane id="2_W2TL_0" index="0" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-11.20"/>
         <lane id="2_W2TL_1" index="1" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-8.00"/>
         <lane id="2_W2TL_2" index="2" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-4.80"/>
         <lane id="2_W2TL_3" index="3" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-1.60"/>
     </edge>
     
-    <edge id="2_TL2W" from ="DD" to="DE" priority="-1" length="750.00">
-        <lane id="2_TL2W_0" index="0" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-11.20"/>
-        <lane id="2_TL2W_1" index="1" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-8.00"/>
-        <lane id="2_TL2W_2" index="2" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-4.80"/>
-        <lane id="2_TL2W_3" index="3" speed="13.89" length="750.00" shape="-750.00,-11.20 -16.80,-1.60"/>
+    <edge id="2_TL2W" from ="TL_2" to="CENTER" priority="-1" length="750.00">
+        <lane id="2_TL2W_0" index="0" speed="13.89" length="750.00" shape="-16.80,11.20 -750.00,11.20"/>
+        <lane id="2_TL2W_1" index="1" speed="13.89" length="750.00" shape="-16.80,8.00 -750.00,8.00"/>
+        <lane id="2_TL2W_2" index="2" speed="13.89" length="750.00" shape="-16.80,4.80 -750.00,4.80"/>
+        <lane id="2_TL2W_3" index="3" speed="13.89" length="750.00" shape="-16.80,1.60 -750.00,1.60"/>
+    </edge>
+    
+     <edge id="2_N2TL" from="DN_2" to="TL_2" priority="-1" length="750.00">
+        <lane id="2_N2TL_0" index="0" speed="13.89" length="750.00" shape="-11.20,750.00 -11.20,16.80"/>
+        <lane id="2_N2TL_1" index="1" speed="13.89" length="750.00" shape="-8.00,750.00 -8.00,16.80"/>
+        <lane id="2_N2TL_2" index="2" speed="13.89" length="750.00" shape="-4.80,750.00 -4.80,16.80"/>
+        <lane id="2_N2TL_3" index="3" speed="13.89" length="750.00" shape="-1.60,750.00 -1.60,16.80"/>
+    </edge>
+    
+     <edge id="2_TL2N" from="TL_2" to="DN_2" priority="-1" length="750.00">
+        <lane id="2_TL2N_0" index="0" speed="13.89" length="750.00" shape="11.20,16.80 11.20,750.00"/>
+        <lane id="2_TL2N_1" index="1" speed="13.89" length="750.00" shape="8.00,16.80 8.00,750.00"/>
+        <lane id="2_TL2N_2" index="2" speed="13.89" length="750.00" shape="4.80,16.80 4.80,750.00"/>
+        <lane id="2_TL2N_3" index="3" speed="13.89" length="750.00" shape="1.60,16.80 1.60,750.00"/>
+    </edge>
+    
+    <edge id="2_S2TL" from="DS_2" to="TL_2" priority="-1" length="750.00">
+        <lane id="2_S2TL_0" index="0" speed="13.89" length="750.00" shape="11.20,-750.00 11.20,-16.80"/>
+        <lane id="2_S2TL_1" index="1" speed="13.89" length="750.00" shape="8.00,-750.00 8.00,-16.80"/>
+        <lane id="2_S2TL_2" index="2" speed="13.89" length="750.00" shape="4.80,-750.00 4.80,-16.80"/>
+        <lane id="2_S2TL_3" index="3" speed="13.89" length="750.00" shape="1.60,-750.00 1.60,-16.80"/>
+    </edge>
+    
+    <edge id="2_TL2S" from="TL_2" to="DS_2" priority="-1" length="750.00">
+        <lane id="2_TL2S_0" index="0" speed="13.89" length="750.00" shape="-11.20,-16.80 -11.20,-750.00"/>
+        <lane id="2_TL2S_1" index="1" speed="13.89" length="750.00" shape="-8.00,-16.80 -8.00,-750.00"/>
+        <lane id="2_TL2S_2" index="2" speed="13.89" length="750.00" shape="-4.80,-16.80 -4.80,-750.00"/>
+        <lane id="2_TL2S_3" index="3" speed="13.89" length="750.00" shape="-1.60,-16.80 -1.60,-750.00"/>
+    </edge>
+    
+     <edge id="2_E2TL" from="DE" to="TL_2" priority="-1" length="750.00">
+        <lane id="2_E2TL_0" index="0" speed="13.89" length="750.00" shape="750.00,11.20 16.80,11.20"/>
+        <lane id="2_E2TL_1" index="1" speed="13.89" length="750.00" shape="750.00,8.00 16.80,8.00"/>
+        <lane id="2_E2TL_2" index="2" speed="13.89" length="750.00" shape="750.00,4.80 16.80,4.80"/>
+        <lane id="2_E2TL_3" index="3" speed="13.89" length="750.00" shape="750.00,1.60 16.80,1.60"/>
+    </edge>
+    
+      <edge id="2_TL2E" from="TL_2" to="DE" priority="-1" length="750.00">
+        <lane id="2_TL2E_0" index="0" speed="13.89" length="750.00" shape="16.80,-11.20 750.00,-11.20"/>
+        <lane id="2_TL2E_1" index="1" speed="13.89" length="750.00" shape="16.80,-8.00 750.00,-8.00"/>
+        <lane id="2_TL2E_2" index="2" speed="13.89" length="750.00" shape="16.80,-4.80 750.00,-4.80"/>
+        <lane id="2_TL2E_3" index="3" speed="13.89" length="750.00" shape="16.80,-1.60 750.00,-1.60"/>
     </edge>
     <!--/Added -->
     
@@ -156,14 +212,27 @@
     </tlLogic>
 
     <!--Added -->
-    <junction id="DD" type="dead_end" x="1500.00" y="0.00" incLanes="2_W2TL_0 2_W2TL_1 2_W2TL_2 2_W2TL_3" intLanes="" shape="750.00,0.00 750.00,-12.80 750.00,0.00"/>
+    <junction id="TL_2" type="traffic_light" x="1500.00" y="0.00" incLanes="2_W2TL_0 2_W2TL_1 2_W2TL_2 2_W2TL_3" intLanes=":TL_20_0 :TL_21_0 :TL_21_1 :TL_21_2 :TL_24_0" shape="750.00,0.00 750.00,-12.80 750.00,0.00">
+        <request index="0"  response="00000000000000000000" foes="00000100000111000000" cont="0"/>
+        <request index="1"  response="00000000000000000000" foes="11111100001111000000" cont="0"/>
+        <request index="2"  response="00000000000000000000" foes="11111100001111000000" cont="0"/>
+        <request index="3"  response="00000000000000000000" foes="11111100001111000000" cont="0"/>
+        <request index="4"  response="00000011110000000000" foes="11110011111111000000" cont="0"/>
+
+    </junction>
+    
+    
+    <junction id="DN_2" type="dead_end" x="1500.00" y="750.00" incLanes="2_TL2N_0 2_TL2N_1 2_TL2N_2 2_TL2N_3" intLanes="" shape="0.00,750.00 12.80,750.00 0.00,750.00"/>
+    <junction id="DS_2" type="dead_end" x="1500.00" y="-750.00" incLanes="2_TL2S_0 2_TL2S_1 2_TL2S_2 2_TL2S_3" intLanes="" shape="0.00,-750.00 -12.80,-750.00 0.00,-750.00"/>
+    <junction id="DE" type="dead_end" x="2250.00" y="0.00" incLanes="2_TL2E_0 2_TL2E_1 2_TL2E_2 2_TL2E_3" intLanes="" shape="-750.00,0.00 -750.00,12.80 -750.00,0.00"/>
     <!--/Added -->
     
-    <!-- Modified -->
-    <junction id="DE" type="priority" x="750.00" y="0.00" incLanes="TL2E_0 TL2E_1 TL2E_2 TL2E_3" intLanes=":TL_16_0 :TL_16_1 :TL_16_2 :TL_4_0" shape="750.00,0.00 750.00,-12.80 750.00,0.00">
+    <!-- Modified + add the TL lanes in incLanes for 2_TLW !-->
+    <junction id="CENTER" type="priority" x="750.00" y="0.00" incLanes="TL2E_0 TL2E_1 TL2E_2 TL2E_3 2_TL2W_0 2_TL2W_1 2_TL2W_2 2_TL2W_3" intLanes=":TL_16_0 :TL_16_1 :TL_16_2 :TL_4_0" shape="750.00,0.00 750.00,-12.80 750.00,0.00">
       <request index="0" response="0" foes="0" cont="0"/>
     </junction>
     <!--/Modified -->
+    
     <junction id="DN" type="dead_end" x="0.00" y="750.00" incLanes="TL2N_0 TL2N_1 TL2N_2 TL2N_3" intLanes="" shape="0.00,750.00 12.80,750.00 0.00,750.00"/>
     <junction id="DS" type="dead_end" x="0.00" y="-750.00" incLanes="TL2S_0 TL2S_1 TL2S_2 TL2S_3" intLanes="" shape="0.00,-750.00 -12.80,-750.00 0.00,-750.00"/>
     <junction id="DW" type="dead_end" x="-750.00" y="0.00" incLanes="TL2W_0 TL2W_1 TL2W_2 TL2W_3" intLanes="" shape="-750.00,0.00 -750.00,12.80 -750.00,0.00"/>
