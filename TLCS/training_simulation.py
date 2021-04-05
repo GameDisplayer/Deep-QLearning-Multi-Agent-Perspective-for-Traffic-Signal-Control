@@ -44,6 +44,7 @@ class Simulation():
         self._list_flow = []
         self._avg_density = []
         self._avg_flow = []
+        self._list_occupancy = []
         
 
 
@@ -69,6 +70,7 @@ class Simulation():
         self._already_in = []
         self._density = []
         self._flow = []
+        self._occupancy = []
         self._cumulative_waiting_time = 0
         old_total_wait = 0
         old_state = -1
@@ -88,6 +90,7 @@ class Simulation():
             self._cumulative_waiting_time+= current_total_wait
             self._flow.append(self._get_flow())
             self._density.append(self._get_density())
+            self._occupancy.append(self._get_occupancy())
 
             # saving the data into the memory
             if self._step != 0:
@@ -250,8 +253,18 @@ class Simulation():
             if car_id not in self._already_in:
                 counter_entered+=1
                 self._already_in.append(car_id)
-        return counter_entered
+        return (counter_entered/5400)*3600
                 
+    def _get_occupancy(self):
+        """
+        Retrieve the occupancy of every edges
+        It is the ratio of the sum of the lengths of the vehicles to the length of the road section in which those vehicles are present in %.
+        """
+        occ_N = traci.edge.getLastStepOccupancy("N2TL")
+        occ_S = traci.edge.getLastStepOccupancy("S2TL")
+        occ_W = traci.edge.getLastStepOccupancy("W2TL")
+        occ_E = traci.edge.getLastStepOccupancy("E2TL")
+        return (occ_N + occ_S + occ_W + occ_E)/4
         
 
     
@@ -400,20 +413,30 @@ class Simulation():
         self._avg_wait_time_per_vehicle.append(self._cumulative_waiting_time/self._sum_queue_length) #how much time a vehicle wait in an episode
         self._list_density.append(self._density)
         self._list_flow.append(self._flow)
+        self._list_occupancy.append(self._occupancy)
         
         
     @property
     def avg_density_and_flow(self):
-        avg_den = [sum(i)/self._max_steps for i in zip(*self._list_density)]
+        avg_den = [sum(i)/len(self._list_density) for i in zip(*self._list_density)]
         d_max = max(avg_den) #maximum density
         self._max_index = avg_den.index(d_max)
         self._avg_density = avg_den[:self._max_index+1]
-        self._avg_flow = [sum(i)/self._max_steps for i in zip(*self._list_flow)][:self._max_index+1]
+        self._avg_flow = [sum(i)/len(self._list_flow) for i in zip(*self._list_flow)][:self._max_index+1]
         return self._avg_density, self._avg_flow
         
     @property
     def get_avg_density_and_flow(self):
         return self._avg_density, self._avg_flow
+    
+    @property
+    def get_avg_occupancy_and_flow(self):
+        avg_occ = [sum(i)/len(self._list_occupancy) for i in zip(*self._list_occupancy)]
+        o_max = max(avg_occ) #maximum occupancy
+        max_index = avg_occ.index(o_max)
+        avg_occ = avg_occ[:max_index+1]
+        avg_flow = [sum(i)/len(self._list_flow) for i in zip(*self._list_flow)][:max_index+1]
+        return avg_occ, avg_flow
     
     @property
     def avg_wait_time_per_vehicle(self):
@@ -447,9 +470,14 @@ class Simulation():
     def flow(self):
         return self._flow
     
+    @property
+    def occupancy(self):
+        return self._occupancy
+    
+    
     
     #End simulation
     def stop(self):
-        return self.reward_store[0], self.cumulative_wait_store[0], self.avg_queue_length_store[0], self.avg_wait_time_per_vehicle[0],self.density, self.flow #self.min_loss[0], self.avg_loss[0], 
+        return self.reward_store[0], self.cumulative_wait_store[0], self.avg_queue_length_store[0], self.avg_wait_time_per_vehicle[0],self.density, self.flow, self.occupancy #self.min_loss[0], self.avg_loss[0], 
  
     
