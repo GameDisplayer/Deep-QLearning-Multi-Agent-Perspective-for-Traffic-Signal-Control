@@ -189,7 +189,7 @@ class Simulation():
         """
         Retrieve the waiting time of every car in the incoming roads
         """
-        incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
+        incoming_roads = ["N2TL", "W2TL", "S2TL", "2_N2TL", "2_W2TL", "2_S2TL", "2_TL2W", "TL2E"]
         car_list = traci.vehicle.getIDList()
         for car_id in car_list:
             wait_time = traci.vehicle.getAccumulatedWaitingTime(car_id)
@@ -266,7 +266,7 @@ class Simulation():
         """
         halt_N = traci.edge.getLastStepHaltingNumber("N2TL")
         halt_S = traci.edge.getLastStepHaltingNumber("S2TL")
-        halt_E = traci.edge.getLastStepHaltingNumber("E2TL")
+        halt_E = traci.edge.getLastStepHaltingNumber("2_TL2W")
         halt_W = traci.edge.getLastStepHaltingNumber("W2TL")
         return halt_N + halt_S + halt_E + halt_W
     
@@ -277,7 +277,7 @@ class Simulation():
         divider = traci.lane.getLength("N2TL_0") / 1000 #  derives the id of the first lane from the edge id (all lanes of an edge have the same length) and 1000 m -> km
         den_N = traci.edge.getLastStepVehicleNumber("N2TL") / divider
         den_S = traci.edge.getLastStepVehicleNumber("S2TL") / divider
-        den_E = traci.edge.getLastStepVehicleNumber("E2TL") / divider
+        den_E = traci.edge.getLastStepVehicleNumber("2_TL2W") / divider
         den_W = traci.edge.getLastStepVehicleNumber("W2TL") / divider
         return den_N + den_S + den_E + den_W
     
@@ -290,7 +290,7 @@ class Simulation():
         ids_N = traci.edge.getLastStepVehicleIDs("N2TL")
         ids_S = traci.edge.getLastStepVehicleIDs("S2TL")
         ids_W = traci.edge.getLastStepVehicleIDs("W2TL")
-        ids_E = traci.edge.getLastStepVehicleIDs("E2TL")
+        ids_E = traci.edge.getLastStepVehicleIDs("2_TL2W")
         car_list = ids_N + ids_S + ids_W + ids_E
         for car_id in car_list:
             if car_id not in self._already_in:
@@ -306,7 +306,7 @@ class Simulation():
         occ_N = traci.edge.getLastStepOccupancy("N2TL")
         occ_S = traci.edge.getLastStepOccupancy("S2TL")
         occ_W = traci.edge.getLastStepOccupancy("W2TL")
-        occ_E = traci.edge.getLastStepOccupancy("E2TL")
+        occ_E = traci.edge.getLastStepOccupancy("2_TL2W")
         return (occ_N + occ_S + occ_W + occ_E)/4
         
 
