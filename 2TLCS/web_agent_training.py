@@ -3,8 +3,6 @@ import numpy as np
 
 from memory import Memory
 from model import TrainModel
-from tensorflow.keras.utils import plot_model
-import os
 
 app = Flask(__name__)
 
