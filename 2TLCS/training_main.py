@@ -99,14 +99,22 @@ if __name__ == "__main__":
         'memory_size_max': config['memory_size_max'], 
         'memory_size_min': config['memory_size_min']})
     #Statistics
-    REWARD_STORE = []
-    CUMULATIVE_WAIT_STORE = []
-    AVG_QUEUE_LENGTH_STORE = []
-    AVG_WAIT_TIME_PER_VEHICLE = []
-    MIN_LOSS_1 = []
-    AVG_LOSS_1 = []
-    MIN_LOSS_2 = []
-    AVG_LOSS_2 = []
+    REWARD_STORE = [] #Global negative reward
+    REWARD_STORE_A1 = [] #Local negative reward first agent
+    REWARD_STORE_A2 = [] #Local negative reward second agent
+    CUMULATIVE_WAIT_STORE = [] #Global cumulative wait store
+    CUMULATIVE_WAIT_STORE_A1 = [] #Local cumulative wait store first agent
+    CUMULATIVE_WAIT_STORE_A2 = [] #Local cumulative wait store second agent
+    AVG_QUEUE_LENGTH_STORE = [] #Global average queue length store
+    AVG_QUEUE_LENGTH_STORE_A1 = [] #Local average queue length store first agent
+    AVG_QUEUE_LENGTH_STORE_A2 = [] #Local average queue length store second agent
+    AVG_WAIT_TIME_PER_VEHICLE = [] #Global average time per vehicle
+    AVG_WAIT_TIME_PER_VEHICLE_A1 = [] #Local average time per vehicle first agent
+    AVG_WAIT_TIME_PER_VEHICLE_A2 = [] #Local average time per vehicle second agent
+    MIN_LOSS_A1 = []
+    AVG_LOSS_A1 = []
+    MIN_LOSS_A2 = []
+    AVG_LOSS_A2 = []
     DENSITY = []
     FLOW = []
     OCCUPANCY = []
@@ -114,7 +122,6 @@ if __name__ == "__main__":
 
     episode = 0
     timestamp_start = datetime.datetime.now()
-    config['total_episodes'] = 10
     while episode < config['total_episodes']:
         
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
@@ -127,7 +134,7 @@ if __name__ == "__main__":
         start_sim_time = timeit.default_timer()
         pool = mp.Pool(processes=12)
         sims=[Sim]
-        mode=['HIGH', 'LOW', 'EW', 'NS']
+        mode=['EW']
         for i in range(len(sims)):
             pool.apply(launch_process, (sims[i], episode, epsilon, mode[i], return_dict),)
         pool.close()
@@ -165,25 +172,31 @@ if __name__ == "__main__":
         
         print("Saving loss results...")
         if(len(model_loss_agent_one) > 0):
-             AVG_LOSS_1.append(sum(model_loss_agent_one)/config['training_epochs'])
-             MIN_LOSS_1.append(min(model_loss_agent_one))
+             AVG_LOSS_A1.append(sum(model_loss_agent_one)/config['training_epochs'])
+             MIN_LOSS_A1.append(min(model_loss_agent_one))
              
         if(len(model_loss_agent_two) > 0):
-             AVG_LOSS_2.append(sum(model_loss_agent_two)/config['training_epochs'])
-             MIN_LOSS_2.append(min(model_loss_agent_two))
+             AVG_LOSS_A2.append(sum(model_loss_agent_two)/config['training_epochs'])
+             MIN_LOSS_A2.append(min(model_loss_agent_two))
         
             
           
         for m in mode:
             REWARD_STORE.append(return_dict[m][0])
-            CUMULATIVE_WAIT_STORE.append(return_dict[m][1])
-            AVG_QUEUE_LENGTH_STORE.append(return_dict[m][2])
-            AVG_WAIT_TIME_PER_VEHICLE.append(return_dict[m][3])
-            #MIN_LOSS.append(return_dict[m][4])
-            #AVG_LOSS.append(return_dict[m][5])
-            DENSITY.append(return_dict[m][4])
-            FLOW.append(return_dict[m][5])
-            OCCUPANCY.append(return_dict[m][6])
+            REWARD_STORE_A1.append(return_dict[m][1])
+            REWARD_STORE_A2.append(return_dict[m][2])
+            CUMULATIVE_WAIT_STORE.append(return_dict[m][3])
+            CUMULATIVE_WAIT_STORE_A1.append(return_dict[m][4])
+            CUMULATIVE_WAIT_STORE_A2.append(return_dict[m][5])
+            AVG_QUEUE_LENGTH_STORE.append(return_dict[m][6])
+            AVG_QUEUE_LENGTH_STORE_A1.append(return_dict[m][7])
+            AVG_QUEUE_LENGTH_STORE_A2.append(return_dict[m][8])
+            AVG_WAIT_TIME_PER_VEHICLE.append(return_dict[m][9])
+            AVG_WAIT_TIME_PER_VEHICLE_A1.append(return_dict[m][10])
+            AVG_WAIT_TIME_PER_VEHICLE_A2.append(return_dict[m][11])
+            DENSITY.append(return_dict[m][12])
+            FLOW.append(return_dict[m][13])
+            OCCUPANCY.append(return_dict[m][14])
             
         
         episode += 1
@@ -198,45 +211,58 @@ if __name__ == "__main__":
     copyfile(src='training_settings.ini', dst=os.path.join(path, 'training_settings.ini'))
     
     
-    print("\nPlotting the aggregate measures...")
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[[REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==0], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==1], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==2], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==3]], filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[[CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==0], [CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==1], [CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==2], [CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==3]], filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]', scenarios=['High', 'Low', 'EW', 'NS'])
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[[AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==0], [AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==1],  [AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==2],  [AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==3]], filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]', scenarios=['High', 'Low', 'EW', 'NS'])
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[[AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==0], [AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==1],  [AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==2],  [AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==3]], filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]', scenarios=['High', 'Low', 'EW', 'NS'])
+    print("\nPlotting the aggregate global measures...")
+    Visualization.save_data_and_plot(data=REWARD_STORE, filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
+    Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE, filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
+    Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE, filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
+    Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE, filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
+    
+    print("\nPlotting the aggregate local measures for agent 1 (left intersection)...")
+    Visualization.save_data_and_plot(data=REWARD_STORE_A1, filename='negative_reward_agent_one', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
+    Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE_A1, filename='cum_delay_agent_one', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
+    Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE_A1, filename='queue_agent_one',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
+    Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE_A1, filename='wait_per_vehicle_agent_one', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
     
     
-    print("\nCalculating Average loss of model...")
-    Visualization.save_data_and_plot(data=MIN_LOSS_1, filename='min_loss_agent_one', title="Minimum MAE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    Visualization.save_data_and_plot(data=AVG_LOSS_1, filename='avg_loss_agent_one', title="Average MAE loss of the first model per episode", xlabel='Episodes', ylabel='Average MAE')
-
-    Visualization.save_data_and_plot(data=MIN_LOSS_2, filename='min_loss_agent_two', title="Minimum MAE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    Visualization.save_data_and_plot(data=AVG_LOSS_2, filename='avg_loss_agent_two', title="Average MAE loss of the second model per episode", xlabel='Episodes', ylabel='Average MAE')
-
-
-    print("\nPlotting the fundamental diagrams of traffic flow depending on the scenario...")
-    s1 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==0]  , [FLOW[i] for i in range(len(FLOW)) if i%4==0])
-    s2 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==1]  , [FLOW[i] for i in range(len(FLOW)) if i%4==1])
-    s3 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==2]  , [FLOW[i] for i in range(len(FLOW)) if i%4==2])
-    s4 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==3]  , [FLOW[i] for i in range(len(FLOW)) if i%4==3])
-
-    Visualization.save_data_and_plot_fundamental_diagram(data=s1, filename='fundamental_diagram_High', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='High')
-    Visualization.save_data_and_plot_fundamental_diagram(data=s2, filename='fundamental_diagram_Low', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='Low')
-    Visualization.save_data_and_plot_fundamental_diagram(data=s3, filename='fundamental_diagram_EW', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='EW')
-    Visualization.save_data_and_plot_fundamental_diagram(data=s4, filename='fundamental_diagram_NS', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='NS')
-
-    Visualization.save_data_and_plot_multiple_fundamental_diagram(data=[s1, s2, s3, s4], filename='fundamental_diagram', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenarios=['High', 'Low', 'EW', 'NS'])
-
-    print("\nPlotting the occupancy diagrams of traffic flow depending on the scenario...")
+    print("\nPlotting the aggregate local measures for agent 2 (right intersection)...")
+    Visualization.save_data_and_plot(data=REWARD_STORE_A2, filename='negative_reward_agent_two', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
+    Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE_A2, filename='cum_delay_agent_two', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
+    Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE_A2, filename='queue_agent_two',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
+    Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE_A2, filename='wait_per_vehicle_agent_two', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
     
-    o1 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==0]  , [FLOW[i] for i in range(len(FLOW)) if i%4==0])
-    o2 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==1]  , [FLOW[i] for i in range(len(FLOW)) if i%4==1])
-    o3 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==2]  , [FLOW[i] for i in range(len(FLOW)) if i%4==2])
-    o4 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==3]  , [FLOW[i] for i in range(len(FLOW)) if i%4==3])
+    
+    print("\nCalculating Average loss of models...")
+    Visualization.save_data_and_plot(data=MIN_LOSS_A1, filename='min_loss_agent_one', title="Minimum MAE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MAE')
+    Visualization.save_data_and_plot(data=AVG_LOSS_A1, filename='avg_loss_agent_one', title="Average MAE loss of the first model per episode", xlabel='Episodes', ylabel='Average MAE')
 
-    Visualization.save_data_and_plot_fundamental_diagram(data=o1, filename='occ_fundamental_diagram_High', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='High')
-    Visualization.save_data_and_plot_fundamental_diagram(data=o2, filename='occ_fundamental_diagram_Low', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='Low')
-    Visualization.save_data_and_plot_fundamental_diagram(data=o3, filename='occ_fundamental_diagram_EW', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='EW')
-    Visualization.save_data_and_plot_fundamental_diagram(data=o4, filename='occ_fundamental_diagram_NS', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='NS')
+    Visualization.save_data_and_plot(data=MIN_LOSS_A2, filename='min_loss_agent_two', title="Minimum MAE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MAE')
+    Visualization.save_data_and_plot(data=AVG_LOSS_A2, filename='avg_loss_agent_two', title="Average MAE loss of the second model per episode", xlabel='Episodes', ylabel='Average MAE')
 
-    Visualization.save_data_and_plot_multiple_fundamental_diagram(data=[o1, o2, o3, o4], filename='occ_fundamental_diagram', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenarios=['High', 'Low', 'EW', 'NS'])
+
+    # print("\nPlotting the fundamental diagrams of traffic flow depending on the scenario...")
+    # s1 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==0]  , [FLOW[i] for i in range(len(FLOW)) if i%4==0])
+    # s2 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==1]  , [FLOW[i] for i in range(len(FLOW)) if i%4==1])
+    # s3 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==2]  , [FLOW[i] for i in range(len(FLOW)) if i%4==2])
+    # s4 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==3]  , [FLOW[i] for i in range(len(FLOW)) if i%4==3])
+
+    # Visualization.save_data_and_plot_fundamental_diagram(data=s1, filename='fundamental_diagram_High', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='High')
+    # Visualization.save_data_and_plot_fundamental_diagram(data=s2, filename='fundamental_diagram_Low', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='Low')
+    # Visualization.save_data_and_plot_fundamental_diagram(data=s3, filename='fundamental_diagram_EW', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='EW')
+    # Visualization.save_data_and_plot_fundamental_diagram(data=s4, filename='fundamental_diagram_NS', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenario='NS')
+
+    # Visualization.save_data_and_plot_multiple_fundamental_diagram(data=[s1, s2, s3, s4], filename='fundamental_diagram', xlabel='Density [vehicles per km]', ylabel='Flow [vehicles per hour]', scenarios=['High', 'Low', 'EW', 'NS'])
+
+    # print("\nPlotting the occupancy diagrams of traffic flow depending on the scenario...")
+    
+    # o1 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==0]  , [FLOW[i] for i in range(len(FLOW)) if i%4==0])
+    # o2 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==1]  , [FLOW[i] for i in range(len(FLOW)) if i%4==1])
+    # o3 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==2]  , [FLOW[i] for i in range(len(FLOW)) if i%4==2])
+    # o4 = avg_occupancy_and_flow([OCCUPANCY[i] for i in range(len(OCCUPANCY)) if i%4==3]  , [FLOW[i] for i in range(len(FLOW)) if i%4==3])
+
+    # Visualization.save_data_and_plot_fundamental_diagram(data=o1, filename='occ_fundamental_diagram_High', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='High')
+    # Visualization.save_data_and_plot_fundamental_diagram(data=o2, filename='occ_fundamental_diagram_Low', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='Low')
+    # Visualization.save_data_and_plot_fundamental_diagram(data=o3, filename='occ_fundamental_diagram_EW', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='EW')
+    # Visualization.save_data_and_plot_fundamental_diagram(data=o4, filename='occ_fundamental_diagram_NS', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenario='NS')
+
+    # Visualization.save_data_and_plot_multiple_fundamental_diagram(data=[o1, o2, o3, o4], filename='occ_fundamental_diagram', xlabel='Occupancy [%]', ylabel='Flow [vehicles per hour]', scenarios=['High', 'Low', 'EW', 'NS'])
 

@@ -78,14 +78,15 @@ def initialize_agents():
 def add_sample():
     old_state_one = np.array(request.get_json()['old_state_one'])
     old_action_one = request.get_json()['old_action_one']
-    reward = request.get_json()['reward']
+    reward_one = request.get_json()['reward_one']
     current_state_one = np.array(request.get_json()['current_state_one'])
-    mem_1.add_sample((old_state_one, old_action_one, reward, current_state_one))
+    mem_1.add_sample((old_state_one, old_action_one, reward_one, current_state_one))
     
     old_state_two = np.array(request.get_json()['old_state_two'])
     old_action_two = request.get_json()['old_action_two']
+    reward_two = request.get_json()['reward_two']
     current_state_two = np.array(request.get_json()['current_state_two'])
-    mem_2.add_sample((old_state_two, old_action_two, reward, current_state_two))
+    mem_2.add_sample((old_state_two, old_action_two, reward_two, current_state_two))
     return "ok"
 
 @app.route('/predict', methods=['POST'])

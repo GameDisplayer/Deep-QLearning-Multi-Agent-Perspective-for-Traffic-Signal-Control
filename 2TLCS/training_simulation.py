@@ -3,7 +3,6 @@ import numpy as np
 import random
 import timeit
 import requests
-import json
 
 
 # phase codes based on environment.net.xml
@@ -35,10 +34,18 @@ class Simulation():
         self._training_epochs = training_epochs
         
         self._reward_store = []
+        self._reward_store_a1 = []
+        self._reward_store_a2 = []
         self._cumulative_wait_store = []
+        self._cumulative_wait_store_a1 = []
+        self._cumulative_wait_store_a2 = []
         self._avg_queue_length_store = []
-        self._avg_loss = []
+        self._avg_queue_length_store_a1 = []
+        self._avg_queue_length_store_a2 = []
         self._avg_wait_time_per_vehicle = []
+        self._avg_wait_time_per_vehicle_a1 = []
+        self._avg_wait_time_per_vehicle_a2 = []
+        self._avg_loss = []
         self._min_loss = []
         self._list_density = []
         self._list_flow = []
@@ -62,17 +69,29 @@ class Simulation():
 
         # inits
         self._step = 0
+        
         self._waiting_times = {}
-        self._sum_neg_reward = 0
+        
+        self._sum_neg_reward_one = 0
+        self._sum_neg_reward_two = 0
+
         self._sum_queue_length = 0
+        self._sum_queue_length_a1 = 0
+        self._sum_queue_length_a2 = 0
         self._sum_waiting_time = 0
+        
         self._model_training_loss = []
         self._already_in = []
+        
         self._density = []
         self._flow = []
         self._occupancy = []
-        self._cumulative_waiting_time = 0
-        old_total_wait = 0
+        
+        self._cumulative_waiting_time_agent_one = 0
+        self._cumulative_waiting_time_agent_two = 0
+        
+        old_total_wait_one = 0
+        old_total_wait_two = 0
         old_state_one = -1
         old_action_one = -1
         old_state_two = -1
@@ -81,15 +100,21 @@ class Simulation():
         while self._step < self._max_steps:
 
             # get current state of each of the intersections
-            current_state_one, current_state_two = self._get_state_with_advanced_perception()
+            current_state_one, current_state_two = self._get_states_with_advanced_perception()
             
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
-            current_total_wait = self._collect_waiting_times()
-            reward = old_total_wait - current_total_wait
-            #reward = (0.9 * old_total_wait) - current_total_wait
             
-            self._cumulative_waiting_time+= current_total_wait
+            #Reward per agents
+            current_total_wait_one = self._collect_waiting_times_first_intersection()
+            reward_one = old_total_wait_one - current_total_wait_one
+            
+            current_total_wait_two = self._collect_waiting_times_second_intersection()
+            reward_two = old_total_wait_two - current_total_wait_two
+            
+            self._cumulative_waiting_time_agent_one += current_total_wait_one
+            self._cumulative_waiting_time_agent_two += current_total_wait_two
+            
             self._flow.append(self._get_flow())
             self._density.append(self._get_density())
             self._occupancy.append(self._get_occupancy())
@@ -100,7 +125,8 @@ class Simulation():
                                                                          'old_state_two': old_state_two.tolist(),
                                                                          'old_action_one': int(old_action_one),
                                                                          'old_action_two': int(old_action_two),
-                                                                         'reward': reward,
+                                                                         'reward_one': reward_one,
+                                                                         'reward_two': reward_two,
                                                                          'current_state_one': current_state_one.tolist(),
                                                                          'current_state_two': current_state_two.tolist()})
 
@@ -137,15 +163,19 @@ class Simulation():
             old_action_one = action_one
             old_action_two = action_two
             
-            old_total_wait = current_total_wait
+            old_total_wait_one = current_total_wait_one
+            old_total_wait_two = current_total_wait_two
 
-            # saving only the meaningful reward to better see if the agent is behaving correctly
-            if reward < 0:
-                self._sum_neg_reward += reward
+            # saving only the meaningful rewards to better see if the agents are behaving correctly
+            if reward_one < 0:
+                self._sum_neg_reward_one += reward_one
+                
+            if reward_two < 0:
+                self._sum_neg_reward_two += reward_two
 
         print("Saving episodes stats...")
         self._save_episode_stats()
-        print("Total reward:", self._sum_neg_reward, "- Epsilon:", round(epsilon, 2))
+        print("Total reward:", self._sum_neg_reward_one + self._sum_neg_reward_two, "- Epsilon:", round(epsilon, 2))
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
 
@@ -180,16 +210,35 @@ class Simulation():
             traci.simulationStep()  # simulate 1 step in sumo
             self._step += 1 # update the step counter
             steps_todo -= 1
-            queue_length = self._get_queue_length()
+            queue_length = self._get_queue_length_intersection_one() + self._get_queue_length_intersection_two()
             self._sum_queue_length += queue_length
             self._sum_waiting_time += queue_length # 1 step while waiting in queue means 1 second waited, for each car, therefore queue_lenght == waited_seconds
 
+            self._sum_queue_length_a1 += self._get_queue_length_intersection_one()
+            self._sum_queue_length_a2 += self._get_queue_length_intersection_two()
 
-    def _collect_waiting_times(self):
+    def _collect_waiting_times_first_intersection(self):
+        """
+        Retrieve the waiting time of every car in the incoming roads of the first intersection (left one)
+        """
+        incoming_roads = ["N2TL", "W2TL", "S2TL", "2_TL2W"]
+        car_list = traci.vehicle.getIDList()
+        for car_id in car_list:
+            wait_time = traci.vehicle.getAccumulatedWaitingTime(car_id)
+            road_id = traci.vehicle.getRoadID(car_id)  # get the road id where the car is located
+            if road_id in incoming_roads:  # consider only the waiting times of cars in incoming roads
+                self._waiting_times[car_id] = wait_time
+            else:
+                if car_id in self._waiting_times: # a car that was tracked has cleared the intersection
+                    del self._waiting_times[car_id] 
+        total_waiting_time = sum(self._waiting_times.values())
+        return total_waiting_time
+    
+    def _collect_waiting_times_second_intersection(self):
         """
         Retrieve the waiting time of every car in the incoming roads
         """
-        incoming_roads = ["N2TL", "W2TL", "S2TL", "2_N2TL", "2_W2TL", "2_S2TL", "2_TL2W", "TL2E"]
+        incoming_roads = ["2_N2TL", "2_W2TL", "2_S2TL", "TL2E"]
         car_list = traci.vehicle.getIDList()
         for car_id in car_list:
             wait_time = traci.vehicle.getAccumulatedWaitingTime(car_id)
@@ -260,14 +309,24 @@ class Simulation():
 
 
 
-    def _get_queue_length(self):
+    def _get_queue_length_intersection_one(self):
         """
-        Retrieve the number of cars with speed = 0 in every incoming lane
+        Retrieve the number of cars with speed = 0 in every incoming lane of the first intersection
         """
         halt_N = traci.edge.getLastStepHaltingNumber("N2TL")
         halt_S = traci.edge.getLastStepHaltingNumber("S2TL")
         halt_E = traci.edge.getLastStepHaltingNumber("2_TL2W")
         halt_W = traci.edge.getLastStepHaltingNumber("W2TL")
+        return halt_N + halt_S + halt_E + halt_W
+    
+    def _get_queue_length_intersection_two(self):
+        """
+        Retrieve the number of cars with speed = 0 in every incoming lane of the second intersection
+        """
+        halt_N = traci.edge.getLastStepHaltingNumber("2_N2TL")
+        halt_S = traci.edge.getLastStepHaltingNumber("2_S2TL")
+        halt_E = traci.edge.getLastStepHaltingNumber("2_E2TL")
+        halt_W = traci.edge.getLastStepHaltingNumber("TL2E")
         return halt_N + halt_S + halt_E + halt_W
     
     def _get_density(self):
@@ -311,7 +370,7 @@ class Simulation():
         
 
     
-    def _get_state_with_advanced_perception(self):
+    def _get_states_with_advanced_perception(self):
         """
         Retrieve the state of the intersection from sumo, in the form of four arrays concatenated representing respectively :
         - the number of cars per each cell
@@ -366,18 +425,18 @@ class Simulation():
                 lane_group = 2
             elif lane_id == "N2TL_3":
                 lane_group = 3
-            elif lane_id == "E2TL_0" or lane_id == "E2TL_1" or lane_id == "E2TL_2":
+            elif lane_id == "2_TL2W_0" or lane_id == "2_TL2W_1" or lane_id == "2_TL2W_2":
                 lane_group = 4
-            elif lane_id == "E2TL_3":
+            elif lane_id == "2_TL2W_3":
                 lane_group = 5
             elif lane_id == "S2TL_0" or lane_id == "S2TL_1" or lane_id == "S2TL_2":
                 lane_group = 6
             elif lane_id == "S2TL_3":
                 lane_group = 7
             #2_xTL_x are the lanes of the second intersection
-            elif lane_id == "2_W2TL_0" or lane_id == "2_W2TL_1" or lane_id == "2_W2TL_2":
+            elif lane_id == "TL2E_0" or lane_id == "TL2E_1" or lane_id == "TL2E_2":
                 lane_group = 8
-            elif lane_id == "2_W2TL_3":
+            elif lane_id == "TL2E_3":
                 lane_group = 9
             elif lane_id == "2_N2TL_0" or lane_id == "2_N2TL_1" or lane_id == "2_N2TL_2":
                 lane_group = 10
@@ -469,11 +528,27 @@ class Simulation():
         """
         Save the stats of the episode to plot the graphs at the end of the session
         """
-        self._reward_store.append(self._sum_neg_reward)  # how much negative reward in this episode
+        cum= self._cumulative_waiting_time_agent_one + self._cumulative_waiting_time_agent_two
+        
+        self._reward_store.append(self._sum_neg_reward_one + self._sum_neg_reward_two)  # how much negative reward in this episode for both agents
+        self._reward_store_a1.append(self._sum_neg_reward_one)
+        self._reward_store_a2.append(self._sum_neg_reward_two)
         #self._cumulative_wait_store.append(self._sum_waiting_time)  # total number of seconds waited by cars in this episode
-        self._cumulative_wait_store.append(self._cumulative_waiting_time) #cumulative wait time in this episode
+        
+        self._cumulative_wait_store.append(cum) #cumulative wait time in this episode for both agents
+        self._cumulative_wait_store_a1.append(self._cumulative_waiting_time_agent_one)
+        self._cumulative_wait_store_a2.append(self._cumulative_waiting_time_agent_two)
+        
         self._avg_queue_length_store.append(self._sum_queue_length / self._max_steps)  # average number of queued cars per step, in this episode
-        self._avg_wait_time_per_vehicle.append(self._cumulative_waiting_time/self._sum_queue_length) #how much time a vehicle wait in an episode
+        self._avg_queue_length_store_a1.append(self._sum_queue_length_a1 / self._max_steps)
+        self._avg_queue_length_store_a2.append(self._sum_queue_length_a2 / self._max_steps)
+        
+        self._avg_wait_time_per_vehicle.append(cum/self._sum_queue_length) #how much time a vehicle wait in an episode
+        self._avg_wait_time_per_vehicle_a1.append(self._cumulative_waiting_time_agent_one/self._sum_queue_length)
+        self._avg_wait_time_per_vehicle_a2.append(self._cumulative_waiting_time_agent_two/self._sum_queue_length)
+        
+       
+        ### TO BE MODIFIED
         self._list_density.append(self._density)
         self._list_flow.append(self._flow)
         self._list_occupancy.append(self._occupancy)
@@ -541,6 +616,4 @@ class Simulation():
     
     #End simulation
     def stop(self):
-        return self.reward_store[0], self.cumulative_wait_store[0], self.avg_queue_length_store[0], self.avg_wait_time_per_vehicle[0],self.density, self.flow, self.occupancy #self.min_loss[0], self.avg_loss[0], 
- 
-    
+        return self.reward_store[0], self._reward_store_a1[0], self._reward_store_a2[0], self.cumulative_wait_store[0], self._cumulative_wait_store_a1[0], self._cumulative_wait_store_a2[0], self.avg_queue_length_store[0], self._avg_queue_length_store_a1[0], self._avg_queue_length_store_a2[0], self.avg_wait_time_per_vehicle[0], self._avg_wait_time_per_vehicle_a1[0], self._avg_wait_time_per_vehicle_a2[0], self.density, self.flow, self.occupancy
