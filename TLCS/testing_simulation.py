@@ -1,8 +1,6 @@
 import traci
 import numpy as np
-import random
 import timeit
-import os
 import re
 
 # phase codes based on environment.net.xml
