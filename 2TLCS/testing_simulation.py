@@ -3,6 +3,7 @@ import numpy as np
 import random
 import timeit
 import requests
+import re
 
 
 # phase codes based on environment.net.xml
@@ -17,10 +18,10 @@ PHASE_EWL_YELLOW = 7
 
 
 class Simulation():
-    def __init__(self, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, n_car):
+    def __init__(self, Model_A1, Model_A2, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, n_cars):
         
-        #self._Model = Model
-        #self._Memory = Memory
+        self._Model_A1 = Model_A1
+        self._Model_A2 = Model_A2
         self._TrafficGen = TrafficGen
         self._step = 0
         self._sumo_cmd = sumo_cmd
@@ -30,6 +31,7 @@ class Simulation():
         self._num_cells = num_cells
         self._num_states = num_states
         self._num_actions = num_actions
+        self._n_cars = n_cars
         
         self._reward_store = []
         self._reward_store_a1 = []
@@ -95,8 +97,11 @@ class Simulation():
         old_state_two = -1
         old_action_two = -1
         
-        action_rotation=[0,1,2,3]
-        ar=0
+        
+        self._waits = [0 for i in range(self._n_cars)]
+        self._pass = [0 for i in range(self._n_cars)]
+        # action_rotation=[0,1,2,3]
+        # ar=0
 
         while self._step < self._max_steps:
 
@@ -132,18 +137,24 @@ class Simulation():
             #                                                              'current_state_two': current_state_two.tolist()})
 
             # choose the light phase to activate, based on the current state of the first intersection
-            #action_one = self._choose_action(current_state_one, epsilon, 1)
+            action_one = self._choose_action(current_state_one, self._Model_A1)
             # choose the light phase to activate, based on the current state of the second intersection
-            #action_two = self._choose_action(current_state_two, epsilon, 2)
+            action_two = self._choose_action(current_state_two, self._Model_A2)
             
+            print(action_one)
+            print(action_two)
             #STATIC TRAFFIC LIGHTS PHASES ACTIONS
-            action_one = action_rotation[ar]
-            action_two = action_rotation[ar]
-            #print(action_one)
-            if (ar==3): 
-                ar=0
-            else:
-                ar+=1
+            # action_one = action_rotation[ar]
+            # action_two = action_rotation[ar]
+            # #print(action_one)
+            # if action_one % 2 == 0:
+            #     self._green_duration = 30
+            # else:
+            #     self._green_duration = 15
+            # if (ar==3): 
+            #     ar=0
+            # else:
+            #     ar+=1
 
             # if the chosen phase is different from the last phase, activate the yellow phase
             #Simultaneity of the 2 traffic lights : manages different cases 
@@ -219,10 +230,36 @@ class Simulation():
             steps_todo -= 1
             queue_length = self._get_queue_length_intersection_one() + self._get_queue_length_intersection_two()
             self._sum_queue_length += queue_length
+            #print("Sumq", self._sum_queue_length)
             self._sum_waiting_time += queue_length # 1 step while waiting in queue means 1 second waited, for each car, therefore queue_lenght == waited_seconds
 
             self._sum_queue_length_a1 += self._get_queue_length_intersection_one()
             self._sum_queue_length_a2 += self._get_queue_length_intersection_two()
+            self._get_waiting_vehicles()
+            #print(sum(self._waits))
+            self._get_pass_vehicles()
+            #print(sum(self._pass))
+            
+       
+    #Test vehicles
+    def _get_pass_vehicles(self):
+        car_list = traci.vehicle.getIDList()
+        for car_id in car_list:
+            listi = re.findall(r'\d+', car_id)
+            i = int(listi[len(listi)-1])
+            #print("P", i)
+            if(self._pass[i] == 0):
+                self._pass[i] += 1
+            
+            
+    def _get_waiting_vehicles(self):
+        car_list = traci.vehicle.getIDList()
+        for car_id in car_list:
+            listi = re.findall(r'\d+', car_id)
+            i = int(listi[len(listi)-1])
+            if traci.vehicle.getWaitingTime(car_id) > 0 and self._waits[i] == 0:
+                self._waits[i] += 1
+        
 
     def _collect_waiting_times_first_intersection(self):
         """
@@ -259,15 +296,12 @@ class Simulation():
         return total_waiting_time
 
 
-    def _choose_action(self, state, epsilon, num):
+    def _choose_action(self, state, model):
         """
-        Decide wheter to perform an explorative or exploitative action, according to an epsilon-greedy policy
+        Pick the best action known based on the current state of the env
+        Method for testing not with Flask
         """
-        if random.random() < epsilon:
-            return random.randint(0, self._num_actions - 1) # random action
-        else:
-            pred = np.array(requests.post('http://127.0.0.1:5000/predict', json={'state': state.tolist(), 'num': int(num)}).json()['prediction'])
-            return np.argmax(pred)# the best action given the current state
+        return np.argmax(model.predict_one(state))
 
 
 
@@ -494,35 +528,6 @@ class Simulation():
         return state_one, state_two
 
 
-
-    def _replay(self):
-        """
-        Retrieve a group of samples from the memory and for each of them update the learning equation, then train
-        """
-        batch = self._Memory.get_samples(self._Model.batch_size)
-
-        if len(batch) > 0:  # if the memory is full enough
-            states = np.array([val[0] for val in batch])  # extract states from the batch
-            next_states = np.array([val[3] for val in batch])  # extract next states from the batch
-
-            # prediction
-            q_s_a = self._Model.predict_batch(states)  # predict Q(state), for every sample
-            q_s_a_d = self._Model.predict_batch(next_states)  # predict Q(next_state), for every sample
-
-            # setup training arrays
-            x = np.zeros((len(batch), self._num_states))
-            y = np.zeros((len(batch), self._num_actions))
-
-            for i, b in enumerate(batch):
-                state, action, reward, _ = b[0], b[1], b[2], b[3]  # extract data from one sample
-                current_q = q_s_a[i]  # get the Q(state) predicted before
-                current_q[action] = reward + self._gamma * np.amax(q_s_a_d[i])  # update Q(state, action)
-                x[i] = state
-                y[i] = current_q  # Q(state) that includes the updated action value
-
-            self._Model.train_batch(x, y)  # train the NN
-            self._model_training_loss.append(self._Model.training_loss) #get the MAE loss 
-            
 
     def _save_episode_stats(self):
         """

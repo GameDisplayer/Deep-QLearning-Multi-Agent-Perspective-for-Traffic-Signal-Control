@@ -8,6 +8,7 @@ from shutil import copyfile
 from testing_simulation import Simulation
 from generator import TrafficGenerator
 from visualization import Visualization
+from model import TestModel
 from utils import import_test_configuration, set_sumo, set_test_path
 
 import statistics
@@ -18,6 +19,18 @@ if __name__ == "__main__":
     config = import_test_configuration(config_file='testing_settings.ini')
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     model_path, plot_path = set_test_path(config['models_path_name'], config['model_to_test'])
+    
+    Model_A1 = TestModel(
+        input_dim=config['num_states'],
+        model_path=model_path,
+        num=1
+    )
+    
+    Model_A2 = TestModel(
+        input_dim=config['num_states'],
+        model_path=model_path,
+        num=2
+    )
 
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
@@ -31,6 +44,8 @@ if __name__ == "__main__":
     )
         
     Simulation = Simulation(
+        Model_A1,
+        Model_A2,
         TrafficGen,
         sumo_cmd,
         config['max_steps'],
@@ -47,17 +62,16 @@ if __name__ == "__main__":
     ql=[]
     awt=[]
     
-    seed = [10000, 10001, 10002, 10003, 10004]
+    seed = [1, 2, 3, 4, 5]
     while episode < 5:
         print('\n----- Test episode n°', episode)
         simulation_time = Simulation.run(seed[episode])  # run the simulation
         print('Simulation time:', simulation_time, 's')
         
-        
         reward+=Simulation._sum_neg_reward_one + Simulation._sum_neg_reward_two       
         ql.append(Simulation._sum_queue_length)
         #print(sum(Simulation._waits))
-        #awt.append(Simulation._sum_queue_length/sum(Simulation._waits))
+        awt.append(Simulation._sum_queue_length/sum(Simulation._waits))
         episode += 1
         
     # print('\n----- Test episode')
