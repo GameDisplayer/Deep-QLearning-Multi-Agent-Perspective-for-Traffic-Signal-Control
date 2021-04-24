@@ -147,8 +147,8 @@ def replay():
 @app.route('/save_models', methods=['POST'])
 def save_model():
     path = request.get_json()['path']
-    model_1.save_model(path)
-    model_2.save_model(path)
+    model_1.save_model(path, 1)
+    model_2.save_model(path, 2)
     #plot_model(model, to_file=os.path.join(path, 'model_structure.png'), show_shapes=True, show_layer_names=True)
     return "ok"
 

@@ -79,11 +79,11 @@ class TrainModel:
         
 
 
-    def save_model(self, path):
+    def save_model(self, path, num):
         """
         Save the current model in the folder as h5 file and a model architecture summary as png
         """
-        self._model.save(os.path.join(path, 'trained_model.h5'))
+        self._model.save(os.path.join(path, 'trained_model_'+ str(num)+'.h5'))
         #plot_model(self._model, to_file=os.path.join(path, 'model_structure.png'), show_shapes=True, show_layer_names=True)
 
     @property
@@ -106,16 +106,16 @@ class TrainModel:
 
 
 class TestModel:
-    def __init__(self, input_dim, model_path):
+    def __init__(self, input_dim, model_path, num):
         self._input_dim = input_dim
-        self._model = self._load_my_model(model_path)
+        self._model = self._load_my_model(model_path, num)
 
 
-    def _load_my_model(self, model_folder_path):
+    def _load_my_model(self, model_folder_path, num):
         """
         Load the model stored in the folder specified by the model number, if it exists
         """
-        model_file_path = os.path.join(model_folder_path, 'trained_model.h5')
+        model_file_path = os.path.join(model_folder_path, 'trained_model_'+str(num)+'.h5')
         
         if os.path.isfile(model_file_path):
             loaded_model = load_model(model_file_path)
