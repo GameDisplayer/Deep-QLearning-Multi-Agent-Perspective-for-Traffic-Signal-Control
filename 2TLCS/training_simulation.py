@@ -457,7 +457,7 @@ class Simulation():
             else:
                 lane_group = -1
 
-            if lane_group >= 1 and lane_group <= 7:
+            if lane_group >= 1 and lane_group <= 15:
                 car_position = int(str(lane_group) + str(lane_cell))  # composition of the two postion ID to create a number in interval 0-79
                 valid_car = True
             elif lane_group == 0:
@@ -484,8 +484,13 @@ class Simulation():
         #State is now a vector of 80 * 4
         #First half for first intersection and second half for second intersection
         
+        
         state_one = np.concatenate((nb_cars[:self._num_cells], avg_speed[:self._num_cells], cumulated_waiting_time[:self._num_cells], nb_queued_cars[:self._num_cells]))
         state_two = np.concatenate((nb_cars[self._num_cells:], avg_speed[self._num_cells:], cumulated_waiting_time[self._num_cells:], nb_queued_cars[self._num_cells:]))
+        
+        #f = open("log.txt", "a")
+        #f.write(str(state_two) + "\n\n\n")
+        #f.close()
         
         #print(state.shape)
         return state_one, state_two
