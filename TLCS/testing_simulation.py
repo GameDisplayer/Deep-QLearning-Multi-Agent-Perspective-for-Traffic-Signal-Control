@@ -70,7 +70,10 @@ class Simulation:
             action = self._choose_action(current_state)
             
             # action = action_rotation[ar]
-            # print(action)
+            # if action % 2 == 0:
+            #     self._green_duration = 30
+            # else:
+            #     self._green_duration = 15
             # if (ar==3): 
             #     ar=0
             # else:

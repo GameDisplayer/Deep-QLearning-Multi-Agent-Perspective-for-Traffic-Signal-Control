@@ -3,7 +3,6 @@ import numpy as np
 import random
 import timeit
 import requests
-import json
 
 
 # phase codes based on environment.net.xml

@@ -53,21 +53,21 @@ if __name__ == "__main__":
     ql=[]
     awt=[]
     
-    seed = [10000, 10001, 10002, 10003, 10004]
-    # while episode < 5:
-    #     print('\n----- Test episode n°', episode)
-    #     simulation_time = Simulation.run(seed[episode])  # run the simulation
-    #     print('Simulation time:', simulation_time, 's')
+    seed = [1, 2, 3, 4, 5]
+    while episode < 5:
+        print('\n----- Test episode n°', episode)
+        simulation_time = Simulation.run(seed[episode])
+        print('Simulation time:', simulation_time, 's')
         
-    #     reward+=Simulation._sum_neg_reward        
-    #     ql.append(Simulation._sum_queue_length)
-    #     print(sum(Simulation._waits))
-    #     awt.append(Simulation._sum_queue_length/sum(Simulation._waits))
-    #     episode += 1
+        reward+=Simulation._sum_neg_reward        
+        ql.append(Simulation._sum_queue_length)
+        print(sum(Simulation._waits))
+        awt.append(Simulation._sum_queue_length/sum(Simulation._waits))
+        episode += 1
         
-    print('\n----- Test episode')
-    simulation_time = Simulation.run(config['episode_seed'])  # run the simulation
-    print('Simulation time:', simulation_time, 's')
+    # print('\n----- Test episode')
+    # simulation_time = Simulation.run(config['episode_seed'])  # run the simulation
+    # print('Simulation time:', simulation_time, 's')
 
     print("----- Testing info saved at:", plot_path)
 
