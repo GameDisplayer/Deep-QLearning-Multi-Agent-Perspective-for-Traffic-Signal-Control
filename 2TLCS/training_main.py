@@ -43,7 +43,6 @@ def gpu_available():
         
 def launch_process(simulation, episode, epsilon, mode, return_dict):
     simulation.run(episode, epsilon)
-    print()
     return_dict[mode] = simulation.stop()
         
 

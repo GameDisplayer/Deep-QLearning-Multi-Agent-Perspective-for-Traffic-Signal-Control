@@ -102,6 +102,10 @@ class Simulation():
             # get current state of each of the intersections
             current_state_one, current_state_two = self._get_states_with_advanced_perception()
             
+            #Adding the knowledge of the other agent previous action
+            current_state_one = np.append(current_state_one, old_action_two)
+            current_state_two = np.append(current_state_two, old_action_one)
+            
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             
@@ -478,7 +482,7 @@ class Simulation():
                 
             
         #State is now a vector of 80 * 4
-        #First half for first intersection and second for second intersection
+        #First half for first intersection and second half for second intersection
         
         state_one = np.concatenate((nb_cars[:self._num_cells], avg_speed[:self._num_cells], cumulated_waiting_time[:self._num_cells], nb_queued_cars[:self._num_cells]))
         state_two = np.concatenate((nb_cars[self._num_cells:], avg_speed[self._num_cells:], cumulated_waiting_time[self._num_cells:], nb_queued_cars[self._num_cells:]))
