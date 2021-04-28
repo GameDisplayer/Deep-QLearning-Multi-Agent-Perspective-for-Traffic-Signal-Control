@@ -12,7 +12,7 @@ width_layers = 480
 batch_size = 100
 learning_rate = 0.001
 training_epochs = 800
-num_states = 320
+num_states = 321
 num_actions = 4
 
 memory_size_min = 600

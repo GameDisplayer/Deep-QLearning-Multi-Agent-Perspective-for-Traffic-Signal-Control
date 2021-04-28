@@ -101,10 +101,10 @@ class Simulation():
 
             # get current state of each of the intersections
             current_state_one, current_state_two = self._get_states_with_advanced_perception()
-            
+  
             #Adding the knowledge of the other agent previous action
             current_state_one = np.append(current_state_one, old_action_two)
-            current_state_two = np.append(current_state_two, old_action_one)
+            current_state_two = np.append(current_state_two, old_action_one)         
             
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
