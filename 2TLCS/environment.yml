@@ -7,7 +7,6 @@ dependencies:
   - spyder
   - pydot
   - graphviz
-  - multiprocess
   - tensorflow
   - cudatoolkit
   - flask
