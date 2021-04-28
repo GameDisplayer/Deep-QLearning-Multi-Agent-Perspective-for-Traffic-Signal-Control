@@ -1,0 +1,13 @@
+name: tf_gpu
+channels:
+  - defaults
+dependencies:
+  - tensorflow-gpu
+  - matplotlib
+  - spyder
+  - pydot
+  - graphviz
+  - multiprocess
+  - tensorflow
+  - cudatoolkit
+  - flask
