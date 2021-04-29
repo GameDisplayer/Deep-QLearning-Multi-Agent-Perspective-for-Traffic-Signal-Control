@@ -2,12 +2,10 @@ name: tf_gpu
 channels:
   - defaults
 dependencies:
-  - python=3.8.8
+  - python=3.8
   - tensorflow-gpu
   - matplotlib
   - spyder
-  - pydot
-  - graphviz
   - tensorflow
   - cudatoolkit
   - flask
