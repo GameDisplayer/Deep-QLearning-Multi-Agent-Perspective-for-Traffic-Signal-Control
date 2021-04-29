@@ -5,8 +5,6 @@ changes.txt
 2TLCS/models
 TLCS/models
 
-*.ini
-
 TLCS/intersection/episode_routes.rou.xml
 
 2TLCS/intersections/episode_routes.rou.xml
