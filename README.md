@@ -24,13 +24,13 @@ cudatoolkit : 11.0
 cudnn : 8.1.1
 ```
 
-> Note : it is possible that anaconda does not have the latest version of `cudnn` available. If this is the case, you can download it on the [official NVIDA website](https://developer.nvidia.com/rdp/cudnn-download) and paste the dll files in `C:\Users\<name>\anaconda3\envs\<env name>\Library\bin`.
+> Note : it is possible that anaconda does not have the latest version of `cudnn` available. If this is the case, you can download it on the [official NVIDIA website](https://developer.nvidia.com/rdp/cudnn-download) and paste the dll files in `C:\Users\<name>\anaconda3\envs\<env name>\Library\bin`.
 
 ## Code structure :
 
-- `TLCS` combines the files for 1-only intersection
+- `TLCS` combines the files for the 1-only intersection
 - `2TLCS` focuses on the 2-intersection simulations
 
 
 ## Docker Hub
-This [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) allows you to dockerise SUMO train on the current simulation of `2TLCS`. 
+This [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) allows you to dockerise SUMO to train the agents on the choosen simulation. 
