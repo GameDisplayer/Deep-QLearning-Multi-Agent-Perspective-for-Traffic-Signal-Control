@@ -11,7 +11,7 @@ The project goal would, then, be the passage to a multi-agent perspective by imp
 
 ## Getting started
 
-The steps you have to follow are perfectly described [here](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control#getting-started).
+The first steps you have to follow are perfectly described [here](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control#getting-started).
 
 However if you have a hard time running the code on your GPU (version compatibility is the worst thing)
 Take a look at [this table](https://www.tensorflow.org/install/source_windows#gpu) from the official tensorflow documentation. You must have the right versions of `CUDA` and `cuDNN` corresponding to the ones of `tensorflow-gpu` and `python`.
@@ -26,4 +26,7 @@ cudnn : 8.1.1
 
 > Note : it is possible that anaconda does not have the latest version of `cudnn` available. If this is the case, you can download it on the [official NVIDA website](https://developer.nvidia.com/rdp/cudnn-download) and paste the dll files in `C:\Users\<name>\anaconda3\envs\<env name>\Library\bin`.
 
+## Code structure :
 
+- `TLCS` combines the files for 1-only intersection
+- `2TLCS` focuses on the 2-intersection simulations
