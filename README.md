@@ -30,3 +30,7 @@ cudnn : 8.1.1
 
 - `TLCS` combines the files for 1-only intersection
 - `2TLCS` focuses on the 2-intersection simulations
+
+
+## Docker Hub
+This [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) allows you to dockerise SUMO train on the current simulation of `2TLCS`. 
