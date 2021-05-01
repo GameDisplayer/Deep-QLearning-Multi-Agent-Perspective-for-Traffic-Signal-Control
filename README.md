@@ -33,4 +33,29 @@ cudnn : 8.1.1
 
 
 ## Docker Hub
-This [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) allows you to dockerise SUMO to train the agents on the choosen simulation. 
+A [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) has been created to allow you dockerise SUMO in order to train the agents on a choosen simulation. 
+
+
+### Usage 
+
+1. You must pull the image :
+
+    ```shell
+    docker pull gamedisplayer/sumo-experiments
+    ```
+2. In the main directory of the repo (at the location of the *requirements.txt*), run the container with the volume attached :
+
+    ```shell
+    docker run -it --name [the_name_you_want] -v [volume_location]:/experiment gamedisplayer/sumo-experiments /bin/bash
+    ```
+    Note : *[volume_location]* might correspond to something like *~/git/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control*
+
+4. Launch your experiments !
+
+    Go to ```TLCS``` or ```2TLCS``` and run the bash script :
+    ```shell
+    ./train.sh
+    ```
+
+For more information (environment variables or description) please go to the [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) !
+
