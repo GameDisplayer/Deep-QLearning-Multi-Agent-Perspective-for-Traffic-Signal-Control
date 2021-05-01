@@ -28,8 +28,8 @@ cudnn : 8.1.1
 
 ## Code structure :
 
-- `TLCS` - combines the scripts for the 1-only intersection [readme]()
-- `2TLCS` - focus on the 2-intersection simulations [readme]()
+- `TLCS` - combines the scripts for the 1-only intersection [readme in construction](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/TLCS#readme)
+- `2TLCS` - focus on the 2-intersection simulations [readme in construction](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS#readme)
 - `requirements.txt` - Output installed packages in requirements format for the Docker image explained in [this section](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control#docker-hub). (*See [here](https://pip.pypa.io/en/stable/cli/pip_freeze/) for more information*)
 
 
