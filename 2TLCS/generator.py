@@ -248,6 +248,6 @@ class TrafficGenerator:
                         elif route_turn == 19:
                             print('    <vehicle id="2_S_N_%i" type="standard_car" route="2_S_N" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_turn == 20:
-                            print('    <vehicle id="2_S_S_%i" type="standard_car" route="2_S_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
+                            print('    <vehicle id="2_S_S_%i" type="standard_car" route="2_S_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         
             print("</routes>", file=routes)
