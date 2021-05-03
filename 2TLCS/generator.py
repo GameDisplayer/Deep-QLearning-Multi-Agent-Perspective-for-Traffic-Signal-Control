@@ -78,9 +78,12 @@ class TrafficGenerator:
                 coming_from_percentage = 0.90
                 artificial_queue_ew = 5
                 artificial_queue_ns = 20
-            else:
+            elif (self._scenario== 'NS'):
                 coming_from_percentage = 0.10
                 artificial_queue_ew = 20
+                artificial_queue_ns = 5
+            else:
+                artificial_queue_ew = 5
                 artificial_queue_ns = 5
 
             for car_counter, step in enumerate(car_gen_steps):
@@ -180,71 +183,71 @@ class TrafficGenerator:
                     if straight_or_turn < 0.75:  # choose direction: straight or turn - 75% of times the car goes straight
                         route_straight = np.random.randint(1, 11)  # choose a random source & destination
                         if route_straight == 1:
-                            print('    <vehicle id="W_E_%i" type="standard_car" route="W_E" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="W_E_%i" type="standard_car" route="W_E" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2E_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_straight == 2:
-                            print('    <vehicle id="W_2_N_%i" type="standard_car" route="W_2_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="W_2_N_%i" type="standard_car" route="W_2_N" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_straight == 3:
-                            print('    <vehicle id="W_2_S_%i" type="standard_car" route="W_2_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="W_2_S_%i" type="standard_car" route="W_2_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_straight == 4:
-                            print('    <vehicle id="E_W_%i" type="standard_car" route="E_W" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="E_W_%i" type="standard_car" route="E_W" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2W_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_straight == 5:
-                            print('    <vehicle id="E_N_%i" type="standard_car" route="E_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="E_N_%i" type="standard_car" route="E_N" depart="%s" departLane="random" departSpeed="10"> <stop lane="TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_straight == 6:
-                            print('    <vehicle id="E_S_%i" type="standard_car" route="E_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="E_S_%i" type="standard_car" route="E_S" depart="%s" departLane="random" departSpeed="10"> <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_straight == 7:
-                            print('    <vehicle id="N_S_%i" type="standard_car" route="N_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="N_S_%i" type="standard_car" route="N_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_straight == 8:
-                            print('    <vehicle id="S_N_%i" type="standard_car" route="S_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="S_N_%i" type="standard_car" route="S_N" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_straight == 9:
-                            print('    <vehicle id="2_N_2_S_%i" type="standard_car" route="2_N_2_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_N_2_S_%i" type="standard_car" route="2_N_2_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_straight == 10:
-                            print('    <vehicle id="2_S_2_N_%i" type="standard_car" route="2_S_2_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_S_2_N_%i" type="standard_car" route="2_S_2_N" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                     else:  # car that turn -25% of the time the car turns
                         route_turn = np.random.randint(1, 21) # choose a random source & destination
                         if route_turn == 1:
-                            print('    <vehicle id="W_N_%i" type="standard_car" route="W_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="W_N_%i" type="standard_car" route="W_N" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_turn == 2:
-                            print('    <vehicle id="W_S_%i" type="standard_car" route="W_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="W_S_%i" type="standard_car" route="W_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         
                         elif route_turn == 3:
-                            print('    <vehicle id="N_W_%i" type="standard_car" route="N_W" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="N_W_%i" type="standard_car" route="N_W" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2W_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 4:
-                            print('    <vehicle id="N_E_%i" type="standard_car" route="N_E" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="N_E_%i" type="standard_car" route="N_E" depart="%s" departLane="random" departSpeed="10"> <stop lane="2_TL2E_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 5:
-                            print('    <vehicle id="N_2_N_%i" type="standard_car" route="N_2_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="N_2_N_%i" type="standard_car" route="N_2_N" depart="%s" departLane="random" departSpeed="10"> <stop lane="2_TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_turn == 6:
-                            print('    <vehicle id="N_2_S_%i" type="standard_car" route="N_2_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)  
+                            print('    <vehicle id="N_2_S_%i" type="standard_car" route="N_2_S" depart="%s" departLane="random" departSpeed="10"> <stop lane="2_TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)  
                         
                         elif route_turn == 7:
-                            print('    <vehicle id="E_2_N_%i" type="standard_car" route="E_2_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="E_2_N_%i" type="standard_car" route="E_2_N" depart="%s" departLane="random" departSpeed="10"> <stop lane="2_TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_turn == 8:
-                            print('    <vehicle id="E_2_S_%i" type="standard_car" route="E_2_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="E_2_S_%i" type="standard_car" route="E_2_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         
                         elif route_turn == 9:
-                            print('    <vehicle id="S_W_%i" type="standard_car" route="S_W" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="S_W_%i" type="standard_car" route="S_W" depart="%s" departLane="random" departSpeed="10"> <stop lane="TL2W_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 10:
-                            print('    <vehicle id="S_E_%i" type="standard_car" route="S_E" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="S_E_%i" type="standard_car" route="S_E" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2E_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 11:
-                            print('    <vehicle id="S_2_N_%i" type="standard_car" route="S_2_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="S_2_N_%i" type="standard_car" route="S_2_N" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_turn == 12:
-                            print('    <vehicle id="S_2_S_%i" type="standard_car" route="S_2_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="S_2_S_%i" type="standard_car" route="S_2_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         
                         elif route_turn == 13:
-                            print('    <vehicle id="2_N_W_%i" type="standard_car" route="2_N_W" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_N_W_%i" type="standard_car" route="2_N_W" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2W_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 14:
-                            print('    <vehicle id="2_N_E_%i" type="standard_car" route="2_N_E" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_N_E_%i" type="standard_car" route="2_N_E" depart="%s" departLane="random" departSpeed="10" > <stop lane="2_TL2E_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 15:
-                            print('    <vehicle id="2_N_N_%i" type="standard_car" route="2_N_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_N_N_%i" type="standard_car" route="2_N_N" depart="%s" departLane="random" departSpeed="10"> <stop lane="TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_turn == 16:
-                            print('    <vehicle id="2_N_S_%i" type="standard_car" route="2_N_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_N_S_%i" type="standard_car" route="2_N_S" depart="%s" departLane="random" departSpeed="10"> <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         
                         elif route_turn == 17:
-                            print('    <vehicle id="2_S_W_%i" type="standard_car" route="2_S_W" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_S_W_%i" type="standard_car" route="2_S_W" depart="%s" departLane="random" departSpeed="10"> <stop lane="TL2W_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 18:
-                            print('    <vehicle id="2_S_E_%i" type="standard_car" route="2_S_E" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_S_E_%i" type="standard_car" route="2_S_E" depart="%s" departLane="random" departSpeed="10"> <stop lane="2_TL2E_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         elif route_turn == 19:
-                            print('    <vehicle id="2_S_N_%i" type="standard_car" route="2_S_N" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_S_N_%i" type="standard_car" route="2_S_N" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ns), file=routes)
                         elif route_turn == 20:
-                            print('    <vehicle id="2_S_S_%i" type="standard_car" route="2_S_S" depart="%s" departLane="random" departSpeed="10" />' % (car_counter, step), file=routes)
+                            print('    <vehicle id="2_S_S_%i" type="standard_car" route="2_S_S" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                         
             print("</routes>", file=routes)
