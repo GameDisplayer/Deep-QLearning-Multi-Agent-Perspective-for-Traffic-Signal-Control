@@ -14,7 +14,7 @@ The project goal would, then, be the passage to a multi-agent perspective by imp
 The first steps you have to follow are perfectly described [here](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control#getting-started).
 
 However if you have a hard time running the code on your GPU (version compatibility is the worst thing)
-Take a look at [this table](https://www.tensorflow.org/install/source_windows#gpu) from the official tensorflow documentation. You must have the right versions of `CUDA` and `cuDNN` corresponding to the ones of `tensorflow-gpu` and `python`.
+Take a look at [this table](https://www.tensorflow.org/install/source_windows#gpu) from the official tensorflow documentation. You must have the right versions of `CUDA` and `cuDNN` corresponding to the ones of `tensorflow-gpu` and `python3`.
 
 Here is the list of the conda package I use to run on an NVIDIA RTX 2070 Max-Q :
 ```
