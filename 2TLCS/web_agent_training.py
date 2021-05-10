@@ -4,6 +4,11 @@ import numpy as np
 from memory import Memory
 from model import TrainModel
 
+#Remove verbose except errors
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 app = Flask(__name__)
 
 #Random agent hyperparameters
