@@ -49,7 +49,7 @@ def launch_process(simulation, episode, epsilon, mode, return_dict):
 if __name__ == "__main__":
     
     
-    #does your GPU is available ?
+    #is your GPU available ?
     gpu_available()
     
     os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
@@ -131,7 +131,7 @@ if __name__ == "__main__":
         
         print("Launch processes")
         start_sim_time = timeit.default_timer()
-        pool = mp.Pool(processes=12)
+        pool = mp.Pool(processes=mp.cpu_count())
         sims=[Sim]
         mode=['EW']
         for i in range(len(sims)):
