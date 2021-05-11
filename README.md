@@ -5,7 +5,7 @@ This repository is forked from [Andrea Vidali's repository](https://github.com/A
 
 ## Brief description of the scope and objectives of the thesis:
 
-The thesis is aimed at, first, studying the experimental setup and baseline approach of an adaptive traffic signal control system (TLSC) while adding some improvements.
+The thesis is aimed at, first, studying the experimental setup and baseline approach of an adaptive traffic signal control system (TLCS) while adding some improvements.
 
 The project goal would, then, be the passage to a multi-agent perspective by implementing two agents independently learning within the traffic environment and analysing their behaviors.
 
@@ -44,18 +44,25 @@ A [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-
     ```shell
     docker pull gamedisplayer/sumo-experiments
     ```
-2. In the main directory of the repo (at the location of the *requirements.txt*), run the container with the volume attached :
+2. If you have already cloned the repository, just go inside the workdir:
+    
+    ```shell
+    cd Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control
+    ```
+3. Check that you are in the main directory of the repo (at the location of the *requirements.txt*), then run the container with the volume attached :
 
     ```shell
-    docker run -it --name [the_name_you_want] -v [volume_location]:/experiment gamedisplayer/sumo-experiments /bin/bash
+    docker run --rm -it --name [the_name_you_want] -v $PWD:/experiment gamedisplayer/sumo-experiments /bin/bash
     ```
-    Note : *[volume_location]* might correspond to something like *~/git/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control*
-
 4. Launch your experiments !
 
     Go to ```TLCS``` or ```2TLCS``` and run the bash script :
     ```shell
     ./train.sh
+    ```
+ *Note:* If you want to quit the virtual environment, just type and enter:
+    ```
+    exit
     ```
 
 For more information (environment variables or description) please go to the [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) !
