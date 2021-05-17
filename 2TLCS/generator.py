@@ -1,6 +1,10 @@
 import numpy as np
 import math
 
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.stats
+
 class TrafficGenerator:
     def __init__(self, max_steps, n_cars_generated, scenario=None):
         self._n_cars_generated = n_cars_generated  # how many cars per episode
@@ -27,6 +31,16 @@ class TrafficGenerator:
             car_gen_steps = np.append(car_gen_steps, ((max_new - min_new) / (max_old - min_old)) * (value - max_old) + max_new)
 
         car_gen_steps = np.rint(car_gen_steps)  # round every value to int -> effective steps when a car will be generated
+        
+        mean = 2000
+        standard_deviation = 1500
+        
+        #x_values = np.arange(0, 5400, 1)
+        
+        y_values = scipy.stats.norm(mean, standard_deviation)
+        #print(y_values)
+        
+        #plt.plot(car_gen_steps, y_values.pdf(car_gen_steps)*100000)
 
         # produce the file for cars generation, one car per line
         with open("intersections/episode_routes.rou.xml", "w") as routes:
@@ -76,20 +90,23 @@ class TrafficGenerator:
             #And calibrate the percentage of artificial queues
             if (self._scenario == 'EW'):
                 coming_from_percentage = 0.90
-                artificial_queue_ew = 5
-                artificial_queue_ns = 20
+                factor_artificial_queue_ew = 0.5
+                factor_artificial_queue_ns = 1
             elif (self._scenario== 'NS'):
                 coming_from_percentage = 0.10
-                artificial_queue_ew = 20
-                artificial_queue_ns = 5
+                factor_artificial_queue_ew = 1
+                factor_artificial_queue_ns = 0.5
             else:
-                artificial_queue_ew = 5
-                artificial_queue_ns = 5
+                factor_artificial_queue_ew = 1
+                factor_artificial_queue_ns = 1
 
             for car_counter, step in enumerate(car_gen_steps):
                 
                 #EW or NS scenario
                 if(self._scenario == 'EW' or self._scenario == 'NS'): #EW or NS traffic scenario
+                
+                    artificial_queue_ew = factor_artificial_queue_ew * y_values.pdf(car_gen_steps)[car_counter]*100000
+                    artificial_queue_ns = factor_artificial_queue_ns * y_values.pdf(car_gen_steps)[car_counter]*100000
                     
                     #NS or EW
                     axis_direction = np.random.uniform()
