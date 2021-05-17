@@ -97,23 +97,24 @@ class TrafficGenerator:
                 factor_artificial_queue_ew = 1
                 factor_artificial_queue_ns = 0.5
             else:
-                factor_artificial_queue_ew = 1
-                factor_artificial_queue_ns = 1
+                factor_artificial_queue_ew = 0.5
+                factor_artificial_queue_ns = 0.5
 
             for car_counter, step in enumerate(car_gen_steps):
+                
+                #Random output lane
+                random_out_lane = np.random.randint(0,4)
+                artificial_queue_ew = factor_artificial_queue_ew * y_values.pdf(car_gen_steps)[car_counter]*100000
+                artificial_queue_ns = factor_artificial_queue_ns * y_values.pdf(car_gen_steps)[car_counter]*100000
+                    
                 
                 #EW or NS scenario
                 if(self._scenario == 'EW' or self._scenario == 'NS'): #EW or NS traffic scenario
                 
-                    artificial_queue_ew = factor_artificial_queue_ew * y_values.pdf(car_gen_steps)[car_counter]*100000
-                    artificial_queue_ns = factor_artificial_queue_ns * y_values.pdf(car_gen_steps)[car_counter]*100000
-                    
                     #NS or EW
                     axis_direction = np.random.uniform()
                     #Straight or turn
                     straight_or_turn = np.random.uniform()
-                    #Random output lane
-                    random_out_lane = np.random.randint(0,4)
                     
                     ### The idea whith this new scenario is turn or straight *AT FIRST JUNCTION*
                     
