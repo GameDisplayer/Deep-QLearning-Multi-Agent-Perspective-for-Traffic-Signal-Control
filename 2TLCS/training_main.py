@@ -61,11 +61,30 @@ if __name__ == "__main__":
     path = set_train_path(config['models_path_name'])
     
     
-    #First idea : test an important traffic EW
+     #High
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated'],
+        config['n_cars_generated_high']
+    )
+    
+    #Low
+    TrafficGen_2 = TrafficGenerator(
+        config['max_steps'], 
+        config['n_cars_generated_low']
+    )
+    
+    #EW
+    TrafficGen_3 = TrafficGenerator(
+        config['max_steps'], 
+        config['n_cars_generated_ew'],
         'EW'
+    )
+    
+    #NS
+    TrafficGen_4 = TrafficGenerator(
+        config['max_steps'], 
+        config['n_cars_generated_ns'],
+        'NS'
     )
 
     #Same visualization
@@ -76,6 +95,45 @@ if __name__ == "__main__":
     
     Sim = Simulation(
         TrafficGen,
+        sumo_cmd,
+        config['gamma'],
+        config['max_steps'],
+        config['green_duration'],
+        config['yellow_duration'],
+        config['num_cells'],
+        config['num_states'],
+        config['num_actions'],
+        config['training_epochs']
+    )
+    
+    Simulation_2 = Simulation(
+        TrafficGen_2,
+        sumo_cmd,
+        config['gamma'],
+        config['max_steps'],
+        config['green_duration'],
+        config['yellow_duration'],
+        config['num_cells'],
+        config['num_states'],
+        config['num_actions'],
+        config['training_epochs']
+    )
+    
+    Simulation_3 = Simulation(
+        TrafficGen_3,
+        sumo_cmd,
+        config['gamma'],
+        config['max_steps'],
+        config['green_duration'],
+        config['yellow_duration'],
+        config['num_cells'],
+        config['num_states'],
+        config['num_actions'],
+        config['training_epochs']
+    )
+       
+    Simulation_4 = Simulation(
+        TrafficGen_4,
         sumo_cmd,
         config['gamma'],
         config['max_steps'],
@@ -121,6 +179,7 @@ if __name__ == "__main__":
 
     episode = 0
     timestamp_start = datetime.datetime.now()
+    config['total_episodes'] = 5
     while episode < config['total_episodes']:
         
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
@@ -132,8 +191,8 @@ if __name__ == "__main__":
         print("Launch processes")
         start_sim_time = timeit.default_timer()
         pool = mp.Pool(processes=mp.cpu_count())
-        sims=[Sim]
-        mode=['EW']
+        sims=[Sim, Simulation_2, Simulation_3, Simulation_4]
+        mode=['HIGH', 'LOW', 'EW', 'NS']
         for i in range(len(sims)):
             pool.apply(launch_process, (sims[i], episode, epsilon, mode[i], return_dict),)
         pool.close()
@@ -211,7 +270,8 @@ if __name__ == "__main__":
     
     
     print("\nPlotting the aggregate global measures...")
-    Visualization.save_data_and_plot(data=REWARD_STORE, filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
+    Visualization.save_data_and_plot_multiple_curves(list_of_data=[[REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==0], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==1], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==2], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==3]], filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=REWARD_STORE, filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
     Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE, filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
     Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE, filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
     Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE, filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
