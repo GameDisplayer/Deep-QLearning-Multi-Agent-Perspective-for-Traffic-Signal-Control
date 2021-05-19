@@ -4,6 +4,8 @@ import numpy as np
 from memory import Memory
 from model import TrainModel
 
+from waitress import serve
+
 #Remove verbose except errors
 import logging
 log = logging.getLogger('werkzeug')
@@ -159,7 +161,8 @@ def save_model():
 
 if __name__ == '__main__':
     # Start Web App
-    app.run(threaded=False)
+    #app.run(threaded=False)
+    serve(app, host='127.0.0.1', port=5000)
 
 
 
