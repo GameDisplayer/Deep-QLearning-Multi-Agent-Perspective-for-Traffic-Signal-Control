@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 import datetime
 from shutil import copyfile
 
@@ -19,22 +20,32 @@ import timeit
 
 
 def avg_occupancy_and_flow(list_occupancy, list_flow):
-        avg_occ = [sum(i)/len(list_occupancy) for i in zip(*list_occupancy)]
-        o_max = max(avg_occ) #maximum occupancy
-        max_index = avg_occ.index(o_max)
-        avg_occ = avg_occ[:max_index+1]
-        avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
-        return avg_occ, avg_flow
+    '''
+    Method to calculate the average occupancy and the average flow of the traffic
+    '''
+    avg_occ = [sum(i)/len(list_occupancy) for i in zip(*list_occupancy)]
+    o_max = max(avg_occ) #maximum occupancy
+    max_index = avg_occ.index(o_max)
+    avg_occ = avg_occ[:max_index+1]
+    avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
+    return avg_occ, avg_flow
+
 
 def avg_density_and_flow(list_density, list_flow):
-     avg_den = [sum(i)/len(list_density) for i in zip(*list_density)]
-     d_max = max(avg_den) #maximum density
-     max_index = avg_den.index(d_max)
-     avg_density = avg_den[:max_index+1]
-     avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
-     return avg_density, avg_flow
+    '''
+    Method to calculate the average density and the average flow of the traffic
+    '''
+    avg_den = [sum(i)/len(list_density) for i in zip(*list_density)]
+    d_max = max(avg_den) #maximum density
+    max_index = avg_den.index(d_max)
+    avg_density = avg_den[:max_index+1]
+    avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
+    return avg_density, avg_flow
 
 def gpu_available():
+    '''
+    Tells you if tensorflow detects your GPU device
+    '''
     if tf.test.gpu_device_name(): 
         print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
     else:
@@ -42,45 +53,56 @@ def gpu_available():
         
         
 def launch_process(simulation, episode, epsilon, mode, return_dict):
+    '''
+    Launches the simulation process and returns the simulation data when it is finished
+    '''
     simulation.run(episode, epsilon)
     return_dict[mode] = simulation.stop()
-        
+
+def save_to_visualize(measurements):
+    '''
+    Method to save and visualize data (in order to avoid repetitions)
+    '''
+    for m in measurements:
+        data, filename, title, xlabel, ylabel = m[0], m[1], m[2], m[3], m[4]
+        scenarios=['High', 'Low', 'EW', 'NS']
+        Visualization.save_data_and_plot_multiple_curves(list_of_data=[[data[i] for i in range(len(data)) if i%4==0], [data[i] for i in range(len(data)) if i%4==1], [data[i] for i in range(len(data)) if i%4==2], [data[i] for i in range(len(data)) if i%4==3]], filename=filename, title=title, xlabel=xlabel, ylabel=ylabel, scenarios=scenarios)
+
 
 if __name__ == "__main__":
     
     
     #is your GPU available ?
     gpu_available()
-    
-    os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
-    
+    #the number of processors in your computer
     print("Number of processors: ", mp.cpu_count())
     
+    #import configuration information 
     config = import_train_configuration(config_file='training_settings.ini')
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     path = set_train_path(config['models_path_name'])
     
     
-     #High
+    #High traffic generator
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_high']
     )
     
-    #Low
+    #Low traffic generator
     TrafficGen_2 = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_low']
     )
     
-    #EW
+    #EW traffic generator
     TrafficGen_3 = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_ew'],
         'EW'
     )
     
-    #NS
+    #NS traffic generator
     TrafficGen_4 = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_ns'],
@@ -93,6 +115,7 @@ if __name__ == "__main__":
         dpi=96
     )
     
+    #Simulation with High traffic
     Sim = Simulation(
         TrafficGen,
         sumo_cmd,
@@ -106,6 +129,7 @@ if __name__ == "__main__":
         config['training_epochs']
     )
     
+    #Simulation with Low traffic
     Simulation_2 = Simulation(
         TrafficGen_2,
         sumo_cmd,
@@ -119,6 +143,7 @@ if __name__ == "__main__":
         config['training_epochs']
     )
     
+    #Simulation with EW traffic
     Simulation_3 = Simulation(
         TrafficGen_3,
         sumo_cmd,
@@ -132,6 +157,7 @@ if __name__ == "__main__":
         config['training_epochs']
     )
        
+    #Simulation with NS traffic
     Simulation_4 = Simulation(
         TrafficGen_4,
         sumo_cmd,
@@ -155,6 +181,7 @@ if __name__ == "__main__":
         'num_actions': config['num_actions'],
         'memory_size_max': config['memory_size_max'], 
         'memory_size_min': config['memory_size_min']})
+
     #Statistics
     REWARD_STORE = [] #Global negative reward
     REWARD_STORE_A1 = [] #Local negative reward first agent
@@ -168,26 +195,28 @@ if __name__ == "__main__":
     AVG_WAIT_TIME_PER_VEHICLE = [] #Global average time per vehicle
     AVG_WAIT_TIME_PER_VEHICLE_A1 = [] #Local average time per vehicle first agent
     AVG_WAIT_TIME_PER_VEHICLE_A2 = [] #Local average time per vehicle second agent
-    MIN_LOSS_A1 = []
-    AVG_LOSS_A1 = []
-    MIN_LOSS_A2 = []
-    AVG_LOSS_A2 = []
-    DENSITY = []
-    FLOW = []
-    OCCUPANCY = []
+    MIN_LOSS_A1 = [] #Minimum loss of the first agent per episode
+    AVG_LOSS_A1 = [] #Avergae loss of the first agent per episode
+    MIN_LOSS_A2 = [] #Minimum loss of the second agent per episode
+    AVG_LOSS_A2 = [] #Average loss of the second agent per episode
+    DENSITY = [] #Density information 
+    FLOW = [] #Flow information
+    OCCUPANCY = [] #Occupancy information
     
 
+    #Main loop
     episode = 0
     timestamp_start = datetime.datetime.now()
-    config['total_episodes'] = 5
     while episode < config['total_episodes']:
         
-        print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
-        epsilon = 1.0 - (episode / config['total_episodes'])  # set the epsilon for this episode according to epsilon-greedy policy
-    
         manager = mp.Manager()
         return_dict = manager.dict()
+
+        print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
+        epsilon = 1.0 - (episode / config['total_episodes'])  # set the epsilon for this episode according to epsilon-greedy policy
+
         
+        #Processes generation
         print("Launch processes")
         start_sim_time = timeit.default_timer()
         pool = mp.Pool(processes=mp.cpu_count())
@@ -236,8 +265,6 @@ if __name__ == "__main__":
         if(len(model_loss_agent_two) > 0):
              AVG_LOSS_A2.append(sum(model_loss_agent_two)/config['training_epochs'])
              MIN_LOSS_A2.append(min(model_loss_agent_two))
-        
-            
           
         for m in mode:
             REWARD_STORE.append(return_dict[m][0])
@@ -263,39 +290,66 @@ if __name__ == "__main__":
     print("----- End time:", datetime.datetime.now())
     print("----- Session info saved at:", path)
 
+    #Save models when the simulation ends
     requests.post('http://127.0.0.1:5000/save_models', json={'path': path})
     #Model.save_model(path)
 
     copyfile(src='training_settings.ini', dst=os.path.join(path, 'training_settings.ini'))
     
-    
+
+    measurements=[]
     print("\nPlotting the aggregate global measures...")
-    Visualization.save_data_and_plot_multiple_curves(list_of_data=[[REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==0], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==1], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==2], [REWARD_STORE[i] for i in range(len(REWARD_STORE)) if i%4==3]], filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
+    measurements.append([REWARD_STORE, 'negative_reward', "Cumulative negative reward per episode", 'Episodes', 'Cumulative negative reward'])
     #Visualization.save_data_and_plot(data=REWARD_STORE, filename='negative_reward', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
-    Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE, filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
-    Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE, filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
-    Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE, filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
+    measurements.append([CUMULATIVE_WAIT_STORE, 'cum_delay', "Cumulative delay per episode", 'Episodes', 'Cumulative delay [s]'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==0], [CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==1], [CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==2], [CUMULATIVE_WAIT_STORE[i] for i in range(len(CUMULATIVE_WAIT_STORE)) if i%4==3]],  filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]',  scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE, filename='cum_delay', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
+    measurements.append([AVG_QUEUE_LENGTH_STORE, 'queue', "Average queue length per episode", 'Episodes', 'Average queue length [vehicles]'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==0], [AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==1], [AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==2], [AVG_QUEUE_LENGTH_STORE[i] for i in range(len(AVG_QUEUE_LENGTH_STORE)) if i%4==3]], filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]', scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE, filename='queue',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
+    measurements.append([AVG_WAIT_TIME_PER_VEHICLE, 'wait_per_vehicle', "Average waiting time per vehicle per episode", 'Episodes', 'Average waiting time per vehicle [s]'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==0], [AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==1],  [AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==2],  [AVG_WAIT_TIME_PER_VEHICLE[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE)) if i%4==3]], filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]', scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE, filename='wait_per_vehicle', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
     
     print("\nPlotting the aggregate local measures for agent 1 (left intersection)...")
-    Visualization.save_data_and_plot(data=REWARD_STORE_A1, filename='negative_reward_agent_one', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
-    Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE_A1, filename='cum_delay_agent_one', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
-    Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE_A1, filename='queue_agent_one',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
-    Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE_A1, filename='wait_per_vehicle_agent_one', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
+    measurements.append([REWARD_STORE_A1, 'negative_reward_agent_one', "Cumulative negative reward per episode", 'Episodes', 'Cumulative negative reward'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[REWARD_STORE_A1[i] for i in range(len(REWARD_STORE_A1)) if i%4==0], [REWARD_STORE_A1[i] for i in range(len(REWARD_STORE_A1)) if i%4==1], [REWARD_STORE_A1[i] for i in range(len(REWARD_STORE_A1)) if i%4==2], [REWARD_STORE_A1[i] for i in range(len(REWARD_STORE_A1)) if i%4==3]], filename='negative_reward_agent_one', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=REWARD_STORE_A1, filename='negative_reward_agent_one', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
+    measurements.append([CUMULATIVE_WAIT_STORE_A1, 'cum_delay_agent_one', "Cumulative delay per episode", 'Episodes', 'Cumulative delay [s]'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[CUMULATIVE_WAIT_STORE_A1[i] for i in range(len(CUMULATIVE_WAIT_STORE_A1)) if i%4==0], [CUMULATIVE_WAIT_STORE_A1[i] for i in range(len(CUMULATIVE_WAIT_STORE_A1)) if i%4==1], [CUMULATIVE_WAIT_STORE_A1[i] for i in range(len(CUMULATIVE_WAIT_STORE_A1)) if i%4==2], [CUMULATIVE_WAIT_STORE_A1[i] for i in range(len(CUMULATIVE_WAIT_STORE_A1)) if i%4==3]], filename='cum_delay_agent_one', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]',  scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE_A1, filename='cum_delay_agent_one', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
+    measurements.append([AVG_QUEUE_LENGTH_STORE_A1, 'queue_agent_one', "Average queue length per episode", 'Episodes', 'Average queue length [vehicles]'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[AVG_QUEUE_LENGTH_STORE_A1[i] for i in range(len(AVG_QUEUE_LENGTH_STORE_A1)) if i%4==0], [AVG_QUEUE_LENGTH_STORE_A1[i] for i in range(len(AVG_QUEUE_LENGTH_STORE_A1)) if i%4==1], [AVG_QUEUE_LENGTH_STORE_A1[i] for i in range(len(AVG_QUEUE_LENGTH_STORE_A1)) if i%4==2], [AVG_QUEUE_LENGTH_STORE_A1[i] for i in range(len(AVG_QUEUE_LENGTH_STORE_A1)) if i%4==3]], filename='queue_agent_one',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]', scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE_A1, filename='queue_agent_one',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
+    measurements.append([AVG_WAIT_TIME_PER_VEHICLE_A1, 'wait_per_vehicle_agent_one', "Average waiting time per vehicle per episode", 'Episodes', 'Average waiting time per vehicle [s]'])    
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[AVG_WAIT_TIME_PER_VEHICLE_A1[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE_A1)) if i%4==0], [AVG_WAIT_TIME_PER_VEHICLE_A1[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE_A1)) if i%4==1],  [AVG_WAIT_TIME_PER_VEHICLE_A1[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE_A1)) if i%4==2],  [AVG_WAIT_TIME_PER_VEHICLE_A1[i] for i in range(len(AVG_WAIT_TIME_PER_VEHICLE_A1)) if i%4==3]], filename='wait_per_vehicle_agent_one', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]', scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE_A1, filename='wait_per_vehicle_agent_one', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
     
     
     print("\nPlotting the aggregate local measures for agent 2 (right intersection)...")
-    Visualization.save_data_and_plot(data=REWARD_STORE_A2, filename='negative_reward_agent_two', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
-    Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE_A2, filename='cum_delay_agent_two', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
-    Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE_A2, filename='queue_agent_two',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
-    Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE_A2, filename='wait_per_vehicle_agent_two', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
+    measurements.append([REWARD_STORE_A2, 'negative_reward_agent_two', "Cumulative negative reward per episode", 'Episodes', 'Cumulative negative reward'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[REWARD_STORE_A2[i] for i in range(len(REWARD_STORE_A2)) if i%4==0], [REWARD_STORE_A2[i] for i in range(len(REWARD_STORE_A2)) if i%4==1], [REWARD_STORE_A2[i] for i in range(len(REWARD_STORE_A2)) if i%4==2], [REWARD_STORE_A2[i] for i in range(len(REWARD_STORE_A2)) if i%4==3]], filename='negative_reward_agent_two', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward', scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=REWARD_STORE_A2, filename='negative_reward_agent_two', title="Cumulative negative reward per episode", xlabel='Episodes', ylabel='Cumulative negative reward')
+    
+    measurements.append([CUMULATIVE_WAIT_STORE_A2, 'cum_delay_agent_two', "Cumulative delay per episode", 'Episodes', 'Cumulative delay [s]'])
+    #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[CUMULATIVE_WAIT_STORE_A2[i] for i in range(len(CUMULATIVE_WAIT_STORE_A2)) if i%4==0], [CUMULATIVE_WAIT_STORE_A2[i] for i in range(len(CUMULATIVE_WAIT_STORE_A2)) if i%4==1], [CUMULATIVE_WAIT_STORE_A2[i] for i in range(len(CUMULATIVE_WAIT_STORE_A2)) if i%4==2], [CUMULATIVE_WAIT_STORE_A2[i] for i in range(len(CUMULATIVE_WAIT_STORE_A2)) if i%4==3]], filename='cum_delay_agent_two', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]',  scenarios=['High', 'Low', 'EW', 'NS'])
+    #Visualization.save_data_and_plot(data=CUMULATIVE_WAIT_STORE_A2, filename='cum_delay_agent_two', title="Cumulative delay per episode", xlabel='Episodes', ylabel='Cumulative delay [s]')
+    measurements.append([AVG_QUEUE_LENGTH_STORE_A2, 'queue_agent_two', "Average queue length per episode", 'Episodes', 'Average queue length [vehicles]'])
+    #Visualization.save_data_and_plot(data=AVG_QUEUE_LENGTH_STORE_A2, filename='queue_agent_two',title="Average queue length per episode", xlabel='Episodes', ylabel='Average queue length [vehicles]')
+    measurements.append([AVG_WAIT_TIME_PER_VEHICLE_A2, 'wait_per_vehicle_agent_two', "Average waiting time per vehicle per episode", 'Episodes', 'Average waiting time per vehicle [s]'])        
+    #Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE_A2, filename='wait_per_vehicle_agent_two', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
     
     
     print("\nCalculating Average loss of models...")
-    Visualization.save_data_and_plot(data=MIN_LOSS_A1, filename='min_loss_agent_one', title="Minimum MAE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    Visualization.save_data_and_plot(data=AVG_LOSS_A1, filename='avg_loss_agent_one', title="Average MAE loss of the first model per episode", xlabel='Episodes', ylabel='Average MAE')
-
-    Visualization.save_data_and_plot(data=MIN_LOSS_A2, filename='min_loss_agent_two', title="Minimum MAE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    Visualization.save_data_and_plot(data=AVG_LOSS_A2, filename='avg_loss_agent_two', title="Average MAE loss of the second model per episode", xlabel='Episodes', ylabel='Average MAE')
+    measurements.append([MIN_LOSS_A1, 'min_loss_agent_one', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
+    measurements.append([AVG_LOSS_A1, 'avg_loss_agent_one', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
+    #Visualization.save_data_and_plot(data=MIN_LOSS_A1, filename='min_loss_agent_one', title="Minimum MAE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MAE')
+    #Visualization.save_data_and_plot(data=AVG_LOSS_A1, filename='avg_loss_agent_one', title="Average MAE loss of the first model per episode", xlabel='Episodes', ylabel='Average MAE')
+    
+    measurements.append([MIN_LOSS_A2, 'min_loss_agent_two', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
+    measurements.append([AVG_LOSS_A2, 'avg_loss_agent_two', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
+    #Visualization.save_data_and_plot(data=MIN_LOSS_A2, filename='min_loss_agent_two', title="Minimum MAE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MAE')
+    #Visualization.save_data_and_plot(data=AVG_LOSS_A2, filename='avg_loss_agent_two', title="Average MAE loss of the second model per episode", xlabel='Episodes', ylabel='Average MAE')
 
 
     # print("\nPlotting the fundamental diagrams of traffic flow depending on the scenario...")
