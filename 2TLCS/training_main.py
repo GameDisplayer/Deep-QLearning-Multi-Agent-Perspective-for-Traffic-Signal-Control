@@ -214,7 +214,6 @@ if __name__ == "__main__":
 
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
         epsilon = 1.0 - (episode / config['total_episodes'])  # set the epsilon for this episode according to epsilon-greedy policy
-
         
         #Processes generation
         print("Launch processes")
@@ -290,6 +289,12 @@ if __name__ == "__main__":
     print("----- End time:", datetime.datetime.now())
     print("----- Session info saved at:", path)
 
+    print("Saved into time.txt")
+    f = open(os.path.join(path,"time.txt"), "a")
+    f.write("\n----- Start time: " + str(timestamp_start))
+    f.write("----- End time: " + str(datetime.datetime.now()))
+    f.close()
+    
     #Save models when the simulation ends
     requests.post('http://127.0.0.1:5000/save_models', json={'path': path})
     #Model.save_model(path)
@@ -339,18 +344,18 @@ if __name__ == "__main__":
     measurements.append([AVG_WAIT_TIME_PER_VEHICLE_A2, 'wait_per_vehicle_agent_two', "Average waiting time per vehicle per episode", 'Episodes', 'Average waiting time per vehicle [s]'])        
     #Visualization.save_data_and_plot(data=AVG_WAIT_TIME_PER_VEHICLE_A2, filename='wait_per_vehicle_agent_two', title="Average waiting time per vehicle per episode", xlabel='Episodes', ylabel='Average waiting time per vehicle [s]')
     
-    
+    save_to_visualize(measurements)
     print("\nCalculating Average loss of models...")
-    measurements.append([MIN_LOSS_A1, 'min_loss_agent_one', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
-    measurements.append([AVG_LOSS_A1, 'avg_loss_agent_one', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
-    #Visualization.save_data_and_plot(data=MIN_LOSS_A1, filename='min_loss_agent_one', title="Minimum MAE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    #Visualization.save_data_and_plot(data=AVG_LOSS_A1, filename='avg_loss_agent_one', title="Average MAE loss of the first model per episode", xlabel='Episodes', ylabel='Average MAE')
+    #measurements.append([MIN_LOSS_A1, 'min_loss_agent_one', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
+    #measurements.append([AVG_LOSS_A1, 'avg_loss_agent_one', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
+    Visualization.save_data_and_plot(data=MIN_LOSS_A1, filename='min_loss_agent_one', title="Minimum MAE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MAE')
+    Visualization.save_data_and_plot(data=AVG_LOSS_A1, filename='avg_loss_agent_one', title="Average MAE loss of the first model per episode", xlabel='Episodes', ylabel='Average MAE')
     
-    measurements.append([MIN_LOSS_A2, 'min_loss_agent_two', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
-    measurements.append([AVG_LOSS_A2, 'avg_loss_agent_two', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
-    #Visualization.save_data_and_plot(data=MIN_LOSS_A2, filename='min_loss_agent_two', title="Minimum MAE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    #Visualization.save_data_and_plot(data=AVG_LOSS_A2, filename='avg_loss_agent_two', title="Average MAE loss of the second model per episode", xlabel='Episodes', ylabel='Average MAE')
-
+    #measurements.append([MIN_LOSS_A2, 'min_loss_agent_two', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
+    #measurements.append([AVG_LOSS_A2, 'avg_loss_agent_two', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
+    Visualization.save_data_and_plot(data=MIN_LOSS_A2, filename='min_loss_agent_two', title="Minimum MAE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MAE')
+    Visualization.save_data_and_plot(data=AVG_LOSS_A2, filename='avg_loss_agent_two', title="Average MAE loss of the second model per episode", xlabel='Episodes', ylabel='Average MAE')
+    
 
     # print("\nPlotting the fundamental diagrams of traffic flow depending on the scenario...")
     # s1 = avg_density_and_flow([DENSITY[i] for i in range(len(DENSITY)) if i%4==0]  , [FLOW[i] for i in range(len(FLOW)) if i%4==0])
