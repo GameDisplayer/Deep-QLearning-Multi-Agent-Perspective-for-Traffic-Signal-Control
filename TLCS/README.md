@@ -1,9 +1,23 @@
 # One-Intersection simulation
 
-This section is based on [this section](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control#running-the-algorithm).
+## Environment
+
+The SUMO [environment file](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/TLCS/intersection/environment.net.xml) is composed of a four-lane intersections. It has been realised thanks to [Netedit](https://sumo.dlr.de/docs/Netedit/index.html).
+
+<p align="center">
+<img src="imgs/4_way_intersection.png" width="30%" height="30%">
+</p>
+
+*Description:*
+- The net is composed of 4 junctions `{W, N, S, E}` and 1 traffic light system `{TL}`. 
+- Each branch of the intersection is composed of 2 edges : one for the 4 incoming lanes and the other for the 4 outcoming lanes.
+- The lanes are 750 meters long. 
+- Each edge is defined **FROM** one of the elements of the two sets **TO** another one. For instance, the edge `TL2N` is starting from `TL` and arriving at `N`. 
+- Every edge is composed of 4 different lanes that are named by adding **'_n'** to the suffix of the edge id. For example, the 4 lanes of `TL2N` are `{TL2N_0, TL2N_1, TL2N_2, TL2N_3}`.
+- The arrows are showing the directions that the vehicles can take.
+
 
 ## Running the algorithm
-
 1. Clone or download the repo.
 2. Launch the script train.sh
      ```shell
