@@ -6,6 +6,12 @@ from model import TrainModel
 from tensorflow.keras.utils import plot_model
 import os
 
+from waitress import serve
+#Remove verbose except errors
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 app = Flask(__name__)
 
 #Random agent hyperparameters
@@ -104,7 +110,8 @@ def save_model():
 
 if __name__ == '__main__':
     # Start Web App
-    app.run(threaded=False)
+    #app.run(threaded=False)
+    serve(app, host='127.0.0.1', port=5000)
 
 
 

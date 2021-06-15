@@ -171,7 +171,6 @@ if __name__ == "__main__":
 
     episode = 0
     timestamp_start = datetime.datetime.now()
-    config['total_episodes'] = 10
     while episode < config['total_episodes']:
         
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
@@ -182,7 +181,7 @@ if __name__ == "__main__":
         
         print("Launch processes")
         start_sim_time = timeit.default_timer()
-        pool = mp.Pool(processes=12)
+        pool = mp.Pool(processes=mp.cpu_count())
         sims=[Sim, Simulation_2, Simulation_3, Simulation_4]
         mode=['HIGH', 'LOW', 'EW', 'NS']
         for i in range(len(sims)):
@@ -230,6 +229,12 @@ if __name__ == "__main__":
     print("\n----- Start time:", timestamp_start)
     print("----- End time:", datetime.datetime.now())
     print("----- Session info saved at:", path)
+
+    print("Saved into time.txt")
+    f = open("time.txt", "a")
+    f.write("\n----- Start time:", timestamp_start)
+    f.write("----- End time:", datetime.datetime.now())
+    f.close()
 
     requests.post('http://127.0.0.1:5000/save_model', json={'path': path})
     #Model.save_model(path)
