@@ -54,7 +54,7 @@ mem_2 = Memory(
 )
 
 
-@app.route('/initialize_agent', methods=['POST'])
+@app.route('/initialize_agents', methods=['POST'])
 def initialize_agents():
     
     #First agent
