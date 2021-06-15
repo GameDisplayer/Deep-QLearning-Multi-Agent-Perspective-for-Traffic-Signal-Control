@@ -1,8 +1,15 @@
 # Two-Intersections simulation
 
-This section is based on [this section](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control#running-the-algorithm).
+## Environment
+
+The SUMO [environment file](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/intersections/environment.net.xml) is composed of 2 intersections joined together.
+
+![alt text](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/imgs/notations.png?raw=true)
+
 
 ## Running the algorithm
+
+This section is based on [this section](https://github.com/AndreaVidali/Deep-QLearning-Agent-for-Traffic-Signal-Control#running-the-algorithm).
 
 1. Clone or download the repo.
 2. Launch the script train.sh

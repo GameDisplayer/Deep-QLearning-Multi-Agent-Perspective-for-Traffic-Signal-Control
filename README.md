@@ -67,3 +67,7 @@ A [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-
 
 For more information (environment variables or description) please go to the [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) !
 
+## Contact
+
+Romain Michelucci - r.michelucci@campus.unimib.it
+
