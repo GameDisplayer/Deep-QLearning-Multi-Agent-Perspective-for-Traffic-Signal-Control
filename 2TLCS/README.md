@@ -4,7 +4,7 @@
 
 The SUMO [environment file](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/intersections/environment.net.xml) is composed of 2 intersections joined together.
 
-![alt text](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/imgs/notations.png?raw=true)
+<img src="https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/imgs/notations.png" width="100" height="100">
 
 
 ## Running the algorithm
