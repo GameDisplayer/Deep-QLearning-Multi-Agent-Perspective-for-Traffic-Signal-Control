@@ -24,13 +24,13 @@ This section is based on [this section](https://github.com/AndreaVidali/Deep-QLe
      ```shell
     ./train.sh
     ```
-    OR 
-    run the following files (in order !) by executing:
+3. (2bis) You could also run the following files by executing:
     ```python
-    python web_agent_training.py
+    python3 web_agent_training.py
     ```
+    and 
     ```python
-    python training_main.py
+    python3 training_main.py
     ```
 Now the agent should start the training.
 
