@@ -2,10 +2,16 @@
 
 ## Environment
 
-The SUMO [environment file](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/intersections/environment.net.xml) is composed of 2 intersections joined together.
+The SUMO [environment file](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/intersections/environment.net.xml) is composed of 2 intersections joined together. It has been realised thanks to [Netedit](https://sumo.dlr.de/docs/Netedit/index.html).
 
-<img src="https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS/imgs/notations.png" width="100" height="100">
+<p align="center">
+<img src="imgs/notations.png" width="70%" height="50%">
+</p>
 
+*Description of the file and screenshot:*
+- The net is composed of 6 junctions `{W, N, S, 2_N, 2_S, E}` and 2 traffic lights `{TL, 2_TL}`. 
+- Each edge is defined **FROM** one of the elements of the two sets **TO** another one. For instance, the edge `TL2N` is starting from `TL` and arriving at `N`. 
+- Every edge is composed of 4 different lanes that are named by adding **'_n'** to the suffix of the edge id. For example, the 4 lanes of `TL2N` are `{TL2N_0, TL2N_1, TL2N_2, TL2N_3}`.
 
 ## Running the algorithm
 
