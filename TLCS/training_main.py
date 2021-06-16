@@ -230,16 +230,16 @@ if __name__ == "__main__":
     print("----- End time:", datetime.datetime.now())
     print("----- Session info saved at:", path)
 
-    print("Saved into time.txt")
-    f = open("time.txt", "a")
-    f.write("\n----- Start time:", timestamp_start)
-    f.write("----- End time:", datetime.datetime.now())
-    f.close()
-
     requests.post('http://127.0.0.1:5000/save_model', json={'path': path})
     #Model.save_model(path)
 
     copyfile(src='training_settings.ini', dst=os.path.join(path, 'training_settings.ini'))
+
+    print("Saved into time.txt")
+    f = open(os.path.join(path,"time.txt"), "a")
+    f.write("\n----- Start time:" + str(timestamp_start))
+    f.write("----- End time:" + str(datetime.datetime.now()))
+    f.close()
     
     
     print("\nPlotting the aggregate measures...")
