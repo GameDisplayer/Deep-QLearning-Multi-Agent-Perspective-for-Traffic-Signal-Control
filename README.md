@@ -26,7 +26,7 @@ cudnn : 8.1.1
 
 > Note : it is possible that anaconda does not have the latest version of `cudnn` available. If this is the case, you can download it on the [official NVIDIA website](https://developer.nvidia.com/rdp/cudnn-download) and paste the dll files in `C:\Users\<name>\anaconda3\envs\<env name>\Library\bin`.
 
-## Code structure :
+## Code structure
 
 - `TLCS` - combines the scripts for the 1-only intersection [readme in construction](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/TLCS#readme)
 - `2TLCS` - focus on the 2-intersection simulations [readme in construction](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/2TLCS#readme)
@@ -66,6 +66,11 @@ A [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-
     ```
 
 For more information (environment variables or description) please go to the [Docker Hub repo](https://hub.docker.com/repository/docker/gamedisplayer/sumo-experiments) !
+
+## Future work
+
+During my thesis, I learned about the [actor-critic](http://incompleteideas.net/book/first/ebook/node66.html) methods that already has promising results in the Adaptive Traffic Signal Control branch.
+Based on [this implementation](https://github.com/cts198859/deeprl_signal_control) I created a forked repo to make some experiments on the 2TLCS environment. It is far from being the central part of my work but I think that it deserves to be explored further. [Discover the repo](https://github.com/GameDisplayer/Multi-Agent-DRL4-Large-Scale-Traffic-Signal-Control)
 
 ## Contact
 
