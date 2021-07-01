@@ -110,12 +110,19 @@ class Simulation():
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             
             #Reward per agents
-            current_total_wait_one = self._collect_waiting_times_first_intersection()
+            #current_total_wait_one = self._collect_waiting_times_first_intersection()
+            #reward_one = old_total_wait_one - current_total_wait_one
+            
+            #current_total_wait_two = self._collect_waiting_times_second_intersection()
+            #reward_two = old_total_wait_two - current_total_wait_two
+
+            #New reward per agents
+            current_total_wait_one = 0.8 * self._collect_waiting_times_first_intersection() + self._get_queue_length_intersection_one() 
             reward_one = old_total_wait_one - current_total_wait_one
-            
-            current_total_wait_two = self._collect_waiting_times_second_intersection()
+
+            current_total_wait_two = 0.8 * self._collect_waiting_times_second_intersection() + self._get_queue_length_intersection_two()
             reward_two = old_total_wait_two - current_total_wait_two
-            
+
             self._cumulative_waiting_time_agent_one += current_total_wait_one
             self._cumulative_waiting_time_agent_two += current_total_wait_two
             
@@ -176,6 +183,8 @@ class Simulation():
                 
             if reward_two < 0:
                 self._sum_neg_reward_two += reward_two
+
+        
 
         print("Saving episodes stats...")
         self._save_episode_stats()
