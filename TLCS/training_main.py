@@ -238,7 +238,7 @@ if __name__ == "__main__":
     print("Saved into time.txt")
     f = open(os.path.join(path,"time.txt"), "a")
     f.write("\n----- Start time:" + str(timestamp_start))
-    f.write("----- End time:" + str(datetime.datetime.now()))
+    f.write("\n----- End time:" + str(datetime.datetime.now()))
     f.close()
     
     
