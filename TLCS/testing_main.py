@@ -29,8 +29,9 @@ if __name__ == "__main__":
         config['max_steps'], 
         config['n_cars_generated'],
         config['art_queue'],
-        None
+        None 
     )
+    #None or "EW" or "NS"
 
     Visualization = Visualization(
         plot_path, 
@@ -47,15 +48,16 @@ if __name__ == "__main__":
         config['num_cells'],
         config['num_states'],
         config['num_actions'],
-        config['n_cars_generated']
+        config['n_cars_generated'],
+        config['static_traffic_lights'] #STL or NOT
     )
     
-    reward=0
-    episode = 0
-    ql=[]
-    awt=[]
+    reward=0 #reward
+    episode = 0 #episode number
+    ql=[] #queue length vector for 5 episodes
+    awt=[] #awt vector for 5 episodes
     
-    seed = [1, 2, 3, 4, 5]
+    seed = [1, 2, 3, 4, 5] #seeds for reproducibility
     while episode < 5:
         print('\n----- Test episode n°', episode)
         simulation_time = Simulation.run(seed[episode])
@@ -63,21 +65,14 @@ if __name__ == "__main__":
         
         reward+=Simulation._sum_neg_reward        
         ql.append(Simulation._sum_queue_length)
-        print(sum(Simulation._waits))
         awt.append(Simulation._sum_queue_length/sum(Simulation._waits))
         episode += 1
-        
-    # print('\n----- Test episode')
-    # simulation_time = Simulation.run(config['episode_seed'])  # run the simulation
-    # print('Simulation time:', simulation_time, 's')
 
     print("----- Testing info saved at:", plot_path)
+    copyfile(src='testing_settings.ini', dst=os.path.join(plot_path, 'testing_settings.ini')) #Save to recall the test settings
 
-    copyfile(src='testing_settings.ini', dst=os.path.join(plot_path, 'testing_settings.ini'))
 
-    #Visualization.save_data_and_plot(data=Simulation.reward_episode, filename='reward', xlabel='Action step', ylabel='Reward')
-    #Visualization.save_data_and_plot(data=Simulation.queue_length_episode, filename='queue', xlabel='Step', ylabel='Queue lenght (vehicles)')
-
+    #Print informations for average episodes
     print('nrw', reward/5)
     print('twt', sum(ql)/5)
     print('awt', statistics.median(awt))

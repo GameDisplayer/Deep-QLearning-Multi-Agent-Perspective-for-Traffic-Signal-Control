@@ -15,7 +15,7 @@ PHASE_EWL_YELLOW = 7
 
 
 class Simulation:
-    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, n_cars):
+    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, n_cars, stl):
         self._Model = Model
         self._TrafficGen = TrafficGen
         self._step = 0
@@ -29,6 +29,7 @@ class Simulation:
         self._n_cars = n_cars
         self._reward_episode = []
         self._queue_length_episode = []
+        self._stl = stl #True or False, if we use the static traffic lights or not
         
 
 
@@ -54,6 +55,7 @@ class Simulation:
         self._sum_queue_length = 0
         self._waits = [0 for i in range(self._n_cars)]
         
+        #for static traffic lights, we need to set the initial phases manually
         action_rotation=[0,1,2,3]
         ar=0
         while self._step < self._max_steps:
@@ -66,20 +68,21 @@ class Simulation:
             current_total_wait = self._collect_waiting_times()
             reward = old_total_wait - current_total_wait
 
-            # choose the light phase to activate, based on the current state of the intersection
-            action = self._choose_action(current_state)
+            #STL : predefined actions, NOT STL: model-based action
+            if(self._stl):
+                action = action_rotation[ar]
+                if action % 2 == 0:
+                    self._green_duration = 30
+                else:
+                    self._green_duration = 15
+                if (ar==3): 
+                    ar=0
+                else:
+                    ar+=1
+            else:
+                # choose the light phase to activate, based on the current state of the intersection
+                action = self._choose_action(current_state)
             
-            # action = action_rotation[ar]
-            # if action % 2 == 0:
-            #     self._green_duration = 30
-            # else:
-            #     self._green_duration = 15
-            # if (ar==3): 
-            #     ar=0
-            # else:
-            #     ar+=1
-            
-
             # if the chosen phase is different from the last phase, activate the yellow phase
             if self._step != 0 and old_action != action:
                 self._set_yellow_phase(old_action)
@@ -95,7 +98,6 @@ class Simulation:
             
             if reward < 0:
                 self._sum_neg_reward += reward
-
             self._reward_episode.append(reward)
 
         #print("Total reward:", np.sum(self._reward_episode))  
@@ -124,6 +126,9 @@ class Simulation:
             
             
     def _get_waiting_vehicles(self):
+        """
+        Store if the vehicle of id *car_id* has waited (1) or not (0) in waits[].
+        """
         car_list = traci.vehicle.getIDList()
         for car_id in car_list:
             i = int(re.findall(r'\d+', car_id)[0])
@@ -170,8 +175,6 @@ class Simulation:
         """
         Activate the correct green light combination in sumo
         """
-
-
         if action_number == 0:
             traci.trafficlight.setPhase("TL", PHASE_NS_GREEN)
         elif action_number == 1:

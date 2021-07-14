@@ -11,30 +11,37 @@ from generator import TrafficGenerator
 from visualization import Visualization
 from utils import import_train_configuration, set_sumo, set_train_path
 import tensorflow as tf
-
 import multiprocessing as mp
 import requests
-
 import timeit
 
 
 def avg_occupancy_and_flow(list_occupancy, list_flow):
-        avg_occ = [sum(i)/len(list_occupancy) for i in zip(*list_occupancy)]
-        o_max = max(avg_occ) #maximum occupancy
-        max_index = avg_occ.index(o_max)
-        avg_occ = avg_occ[:max_index+1]
-        avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
-        return avg_occ, avg_flow
+    """
+    Get the average occupancy and flow for the full intersection
+    """
+    avg_occ = [sum(i)/len(list_occupancy) for i in zip(*list_occupancy)]
+    o_max = max(avg_occ) #maximum occupancy
+    max_index = avg_occ.index(o_max)
+    avg_occ = avg_occ[:max_index+1]
+    avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
+    return avg_occ, avg_flow
 
 def avg_density_and_flow(list_density, list_flow):
-     avg_den = [sum(i)/len(list_density) for i in zip(*list_density)]
-     d_max = max(avg_den) #maximum density
-     max_index = avg_den.index(d_max)
-     avg_density = avg_den[:max_index+1]
-     avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
-     return avg_density, avg_flow
+    """
+    get the average density and flow for the full intersection
+    """
+    avg_den = [sum(i)/len(list_density) for i in zip(*list_density)]
+    d_max = max(avg_den) #maximum density
+    max_index = avg_den.index(d_max)
+    avg_density = avg_den[:max_index+1]
+    avg_flow = [sum(i)/len(list_flow) for i in zip(*list_flow)][:max_index+1]
+    return avg_density, avg_flow
 
 def gpu_available():
+    """
+    Tells if the GPU is available, i.e. if the Tensorflow backend is used.
+    """
     if tf.test.gpu_device_name(): 
         print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
     else:
@@ -42,21 +49,23 @@ def gpu_available():
         
         
 def launch_process(simulation, episode, epsilon, mode, return_dict):
+    """
+    Method to launch the simulation depending on the simulation, episode, epsilon and mode.
+    """
     simulation.run(episode, epsilon)
-    print()
     return_dict[mode] = simulation.stop()
         
 
 if __name__ == "__main__":
     
-    
     #does your GPU is available ?
     gpu_available()
-    
+    #set cuda visible devices
     os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
-    
+    #print number of processors available
     print("Number of processors: ", mp.cpu_count())
     
+    #import the configuration file
     config = import_train_configuration(config_file='training_settings.ini')
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     path = set_train_path(config['models_path_name'])
@@ -64,19 +73,22 @@ if __name__ == "__main__":
     #High
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated_high']
+        config['n_cars_generated_high'],
+        config['art_queue']
     )
     
     #Low
     TrafficGen_2 = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated_low']
+        config['n_cars_generated_low'],
+        config['art_queue']
     )
     
     #EW
     TrafficGen_3 = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_ew'],
+        config['art_queue'],
         'EW'
     )
     
@@ -84,6 +96,7 @@ if __name__ == "__main__":
     TrafficGen_4 = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_ns'],
+        config['art_queue'],
         'NS'
     )
    
@@ -93,6 +106,8 @@ if __name__ == "__main__":
         dpi=96
     )
     
+    #Simulations classes with the settings defined in the configuration file
+    #High
     Sim = Simulation(
         TrafficGen,
         sumo_cmd,
@@ -105,7 +120,7 @@ if __name__ == "__main__":
         config['num_actions'],
         config['training_epochs']
     )
-    
+    #Low
     Simulation_2 = Simulation(
         TrafficGen_2,
         sumo_cmd,
@@ -119,6 +134,7 @@ if __name__ == "__main__":
         config['training_epochs']
     )
     
+    #EW
     Simulation_3 = Simulation(
         TrafficGen_3,
         sumo_cmd,
@@ -132,6 +148,7 @@ if __name__ == "__main__":
         config['training_epochs']
     )
        
+    #NS
     Simulation_4 = Simulation(
         TrafficGen_4,
         sumo_cmd,
@@ -146,7 +163,7 @@ if __name__ == "__main__":
     )
     
 
-    #inititalization of agent
+    #inititalization of the agent via Flask server
     print("Initialization of the agent")
     requests.post('http://127.0.0.1:5000/initialize_agent', json={'num_layers': config['num_layers'], 
         'width_layers': config['width_layers'], 
@@ -157,7 +174,7 @@ if __name__ == "__main__":
         'memory_size_max': config['memory_size_max'], 
         'memory_size_min': config['memory_size_min']})
     
-    #Statistics
+    #Statistics to store
     REWARD_STORE = []
     CUMULATIVE_WAIT_STORE = []
     AVG_QUEUE_LENGTH_STORE = []
@@ -168,7 +185,7 @@ if __name__ == "__main__":
     FLOW = []
     OCCUPANCY = []
     
-
+    #Start the training process
     episode = 0
     timestamp_start = datetime.datetime.now()
     while episode < config['total_episodes']:
@@ -176,6 +193,7 @@ if __name__ == "__main__":
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
         epsilon = 1.0 - (episode / config['total_episodes'])  # set the epsilon for this episode according to epsilon-greedy policy
     
+        #To communicate with the processes
         manager = mp.Manager()
         return_dict = manager.dict()
         
@@ -191,7 +209,7 @@ if __name__ == "__main__":
         simulation_time = round(timeit.default_timer() - start_sim_time, 1)
         print('Simulation time: ', simulation_time)
         
-        #Replay
+        #Replay at the end of the 4 different simulations
         print("Training...")
         start_time = timeit.default_timer()
         model_loss=[]
@@ -205,13 +223,14 @@ if __name__ == "__main__":
         
         print('\nTotal time for this simulation: ', simulation_time+training_time)
         
+        #Loss
         if(len(model_loss) > 0):
              print("Saving loss results...")
              #print(self._model_training_loss)
              AVG_LOSS.append(sum(model_loss)/config['training_epochs'])
              MIN_LOSS.append(min(model_loss))
             
-          
+        #Information about metrics  
         for m in mode:
             REWARD_STORE.append(return_dict[m][0])
             CUMULATIVE_WAIT_STORE.append(return_dict[m][1])
@@ -222,8 +241,7 @@ if __name__ == "__main__":
             DENSITY.append(return_dict[m][4])
             FLOW.append(return_dict[m][5])
             OCCUPANCY.append(return_dict[m][6])
-            
-        
+               
         episode += 1
 
     print("\n----- Start time:", timestamp_start)

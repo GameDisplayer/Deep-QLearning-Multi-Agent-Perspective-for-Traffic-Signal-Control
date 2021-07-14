@@ -21,29 +21,30 @@ class Simulation():
         
         #self._Model = Model
         #self._Memory = Memory
-        self._TrafficGen = TrafficGen
-        self._gamma = gamma
-        self._step = 0
-        self._sumo_cmd = sumo_cmd
-        self._max_steps = max_steps
-        self._green_duration = green_duration
-        self._yellow_duration = yellow_duration
-        self._num_cells = num_cells
-        self._num_states = num_states
-        self._num_actions = num_actions
-        self._training_epochs = training_epochs
+        self._TrafficGen = TrafficGen # the traffic generator class
+        self._gamma = gamma #agent performances between 0 and 1
+        self._step = 0 #step counter
+        self._sumo_cmd = sumo_cmd #cmd command to run sumo at simulation time
+        self._max_steps = max_steps #maximum number of steps in a simulation
+        self._green_duration = green_duration #fixed green duration, in seconds, for every green phase
+        self._yellow_duration = yellow_duration #fixed yellow duration, in seconds, for every yellow phase
+        self._num_cells = num_cells #number of cells in the state repr
+        self._num_states = num_states #number of states in the state space repr
+        self._num_actions = num_actions #number of actions
+        self._training_epochs = training_epochs #number of training epochs for the model
         
-        self._reward_store = []
-        self._cumulative_wait_store = []
-        self._avg_queue_length_store = []
-        self._avg_loss = []
-        self._avg_wait_time_per_vehicle = []
-        self._min_loss = []
-        self._list_density = []
-        self._list_flow = []
-        self._avg_density = []
-        self._avg_flow = []
-        self._list_occupancy = []
+        #metrics store
+        self._reward_store = [] #store the rewards for every simulation
+        self._cumulative_wait_store = [] #store the cumulative waiting times for every simulation
+        self._avg_queue_length_store = [] #store the average queue length for every simulation
+        self._avg_loss = [] #store the average loss for every training epoch
+        self._avg_wait_time_per_vehicle = [] #store the average waiting time for every vehicle for every simulationTeX
+        self._min_loss = [] #store the minimum loss of the model (MSE, MAE or Huber)
+        self._list_density = [] #list density
+        self._list_flow = [] #list flow
+        self._avg_density = [] #average density
+        self._avg_flow = [] #average flow
+        self._list_occupancy = [] #list_occupancy
         
 
 
@@ -51,7 +52,6 @@ class Simulation():
         """
         Runs an episode of simulation, then starts a training session
         """
-        
         start_time = timeit.default_timer()
 
         # first, generate the route file for this simulation and set up sumo
@@ -75,6 +75,7 @@ class Simulation():
         old_state = -1
         old_action = -1
 
+        # run the simulation
         while self._step < self._max_steps:
 
             # get current state of the intersection

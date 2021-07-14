@@ -33,6 +33,8 @@ def import_train_configuration(config_file):
     config['gamma'] = content['agent'].getfloat('gamma')
     config['models_path_name'] = content['dir']['models_path_name']
     config['sumocfg_file_name'] = content['dir']['sumocfg_file_name']
+    #Added
+    config['art_queue'] = content['simulation'].getboolean('art_queue')
     return config
 
 
@@ -57,6 +59,7 @@ def import_test_configuration(config_file):
     config['model_to_test'] = content['dir'].getint('model_to_test') 
     #Added
     config['art_queue'] = content['simulation'].getboolean('art_queue')
+    config['static_traffic_lights'] = content['simulation'].getboolean('static_traffic_lights')
     return config
 
 

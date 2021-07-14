@@ -70,7 +70,7 @@ class Visualization:
                         
     def save_data_and_plot_multiple_fundamental_diagram(self, data, filename, xlabel, ylabel, scenarios): 
         """
-        Produce a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
+        Produces a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
         """
         
         d, f = data[0]
@@ -118,7 +118,7 @@ class Visualization:
                         
     def save_data_and_plot_fundamental_diagram(self, data, filename, xlabel, ylabel, scenario): 
         """
-        Produce a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
+        Produces a plot of the fundamental diagram of traffic flow on multiple scenarios over the session and save the relative data to txt
         """
         
         density, flow = data
