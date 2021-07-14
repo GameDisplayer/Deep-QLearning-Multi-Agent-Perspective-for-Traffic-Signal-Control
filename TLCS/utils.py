@@ -55,6 +55,8 @@ def import_test_configuration(config_file):
     config['sumocfg_file_name'] = content['dir']['sumocfg_file_name']
     config['models_path_name'] = content['dir']['models_path_name']
     config['model_to_test'] = content['dir'].getint('model_to_test') 
+    #Added
+    config['art_queue'] = content['simulation'].getboolean('art_queue')
     return config
 
 

@@ -3,10 +3,11 @@ import math
 import scipy.stats
 
 class TrafficGenerator:
-    def __init__(self, max_steps, n_cars_generated, scenario=None):
+    def __init__(self, max_steps, n_cars_generated, artificial_queue=False, scenario=None):
         self._n_cars_generated = n_cars_generated  # how many cars per episode
-        self._max_steps = max_steps
-        self._scenario = scenario
+        self._max_steps = max_steps # maximum steps in one episode
+        self._scenario = scenario # scenario type
+        self._queue = artificial_queue # whether to use artificial queue or not
 
     def generate_routefile(self, seed):
         """
@@ -29,6 +30,7 @@ class TrafficGenerator:
 
         car_gen_steps = np.rint(car_gen_steps)  # round every value to int -> effective steps when a car will be generated
 
+        #Probability distribution for artificial queues
         mean = 2000
         standard_deviation = 1500
         y_values = scipy.stats.norm(mean, standard_deviation)
@@ -54,24 +56,39 @@ class TrafficGenerator:
             #Determine the coming percentage depending on the scenario -> EW 90% - 10% (inverse of NS)
             if (self._scenario == 'EW'):
                 coming_from_percentage = 0.90
-                factor_artificial_queue_ew = 0.5
-                factor_artificial_queue_ns = 1
+                if self._queue:
+                    factor_artificial_queue_ew = 0.5
+                    factor_artificial_queue_ns = 1
+                else:
+                    factor_artificial_queue_ew = -1 #-1 because 0 creates a stop situation
+                    factor_artificial_queue_ns = -1
             elif (self._scenario== 'NS'):
                 coming_from_percentage = 0.10
-                factor_artificial_queue_ew = 1
-                factor_artificial_queue_ns = 0.5
+                if self._queue:
+                    factor_artificial_queue_ew = 1
+                    factor_artificial_queue_ns = 0.5
+                else:
+                    factor_artificial_queue_ew = -1
+                    factor_artificial_queue_ns = -1
             else:
-                factor_artificial_queue_ew = 0.5
-                factor_artificial_queue_ns = 0.5
+                if self._queue:
+                    factor_artificial_queue_ew = 0.5
+                    factor_artificial_queue_ns = 0.5
+                else:
+                    factor_artificial_queue_ew = -1
+                    factor_artificial_queue_ns = -1
 
+
+            #Generate the routes for each car
             for car_counter, step in enumerate(car_gen_steps):
 
+                #Determine the outcoming lane and the waiting time
                 random_out_lane = np.random.randint(0,4)
-                artificial_queue_ew = factor_artificial_queue_ew * y_values.pdf(car_gen_steps)[car_counter]*100000
-                artificial_queue_ns = factor_artificial_queue_ns * y_values.pdf(car_gen_steps)[car_counter]*100000
+                artificial_queue_ew = factor_artificial_queue_ew * (y_values.pdf(car_gen_steps)[car_counter]*100000)
+                artificial_queue_ns = factor_artificial_queue_ns * (y_values.pdf(car_gen_steps)[car_counter]*100000)
                 
                 #EW or NS scenario
-                if(self._scenario == 'EW' or self._scenario == 'NS'): #EW or NS traffic scenario
+                if(self._scenario == 'EW' or self._scenario == 'NS'):
                     
                     axis_direction = np.random.uniform()
                     #Straight or turn
@@ -112,7 +129,6 @@ class TrafficGenerator:
                                 print('    <vehicle id="N_E_%i" type="standard_car" route="N_E" depart="%s" departLane="random" departSpeed="10" > <stop lane="TL2E_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, artificial_queue_ew), file=routes)
                 # Low or High scenario 
                 else :
-                    
                     straight_or_turn = np.random.uniform()
                     if straight_or_turn < 0.75:  # choose direction: straight or turn - 75% of times the car goes straight
                         route_straight = np.random.randint(1, 5)  # choose a random source & destination

@@ -28,6 +28,8 @@ if __name__ == "__main__":
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated'],
+        config['art_queue'],
+        None
     )
 
     Visualization = Visualization(
