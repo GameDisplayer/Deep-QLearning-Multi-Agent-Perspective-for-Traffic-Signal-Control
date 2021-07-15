@@ -29,7 +29,7 @@ if __name__ == "__main__":
         config['max_steps'], 
         config['n_cars_generated'],
         config['art_queue'],
-        None 
+        None
     )
     #None or "EW" or "NS"
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     reward=0 #reward
     episode = 0 #episode number
     ql=[] #queue length vector for 5 episodes
-    awt=[] #awt vector for 5 episodes
+    awt=[] #average waiting time per vehicle vector for 5 episodes
     
     seed = [1, 2, 3, 4, 5] #seeds for reproducibility
     while episode < 5:

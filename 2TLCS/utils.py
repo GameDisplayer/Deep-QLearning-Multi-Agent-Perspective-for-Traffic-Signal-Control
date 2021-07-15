@@ -34,6 +34,8 @@ def import_train_configuration(config_file):
     config['gamma'] = content['agent'].getfloat('gamma')
     config['models_path_name'] = content['dir']['models_path_name']
     config['sumocfg_file_name'] = content['dir']['sumocfg_file_name']
+    #Added
+    config['art_queue'] = content['simulation'].getboolean('art_queue')
     return config
 
 
@@ -56,6 +58,9 @@ def import_test_configuration(config_file):
     config['sumocfg_file_name'] = content['dir']['sumocfg_file_name']
     config['models_path_name'] = content['dir']['models_path_name']
     config['model_to_test'] = content['dir'].getint('model_to_test') 
+    #Added
+    config['art_queue'] = content['simulation'].getboolean('art_queue')
+    config['static_traffic_lights'] = content['simulation'].getboolean('static_traffic_lights')
     return config
 
 
@@ -77,7 +82,7 @@ def set_sumo(gui, sumocfg_file_name, max_steps):
         sumoBinary = checkBinary('sumo-gui')
  
     # setting the cmd command to run sumo at simulation time
-    sumo_cmd = [sumoBinary, "-c", os.path.join('intersections', sumocfg_file_name), "--no-step-log", "true", "--waiting-time-memory", str(max_steps)]
+    sumo_cmd = [sumoBinary, "-c", os.path.join('intersections', sumocfg_file_name), "--no-step-log", "true", "--random=false", "--no-warnings", "--waiting-time-memory", str(max_steps)]
 
     return sumo_cmd
 

@@ -18,7 +18,7 @@ PHASE_EWL_YELLOW = 7
 
 
 class Simulation():
-    def __init__(self, Model_A1, Model_A2, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, n_cars):
+    def __init__(self, Model_A1, Model_A2, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, n_cars, stl):
         
         self._Model_A1 = Model_A1
         self._Model_A2 = Model_A2
@@ -32,6 +32,8 @@ class Simulation():
         self._num_states = num_states
         self._num_actions = num_actions
         self._n_cars = n_cars
+        self._stl = stl #True or False, if we use the static traffic lights or not
+
         
         self._reward_store = []
         self._reward_store_a1 = []
@@ -57,7 +59,7 @@ class Simulation():
 
     def run(self, episode):
         """
-        Runs an episode of simulation, then starts a training session
+        Runs the testing simulation
         """
         
         start_time = timeit.default_timer()
@@ -100,61 +102,53 @@ class Simulation():
         
         self._waits = [0 for i in range(self._n_cars)]
         self._pass = [0 for i in range(self._n_cars)]
-        # action_rotation=[0,1,2,3]
-        # ar=0
+        action_rotation=[0,1,2,3]
+        ar=0
 
         while self._step < self._max_steps:
 
             # get current state of each of the intersections
             current_state_one, current_state_two = self._get_states_with_advanced_perception()
+
+            if (self._num_states == 321):
+                #Adding the knowledge of the other agent previous action
+                current_state_one = np.append(current_state_one, old_action_two)
+                current_state_two = np.append(current_state_two, old_action_one)         
+            
             
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
-            
-            #Reward per agents
+            ## Reward per agents
             current_total_wait_one = self._collect_waiting_times_first_intersection()
             reward_one = old_total_wait_one - current_total_wait_one
-            
             current_total_wait_two = self._collect_waiting_times_second_intersection()
             reward_two = old_total_wait_two - current_total_wait_two
             
+            ## Metrics
             self._cumulative_waiting_time_agent_one += current_total_wait_one
             self._cumulative_waiting_time_agent_two += current_total_wait_two
-            
-            self._flow.append(self._get_flow())
-            self._density.append(self._get_density())
-            self._occupancy.append(self._get_occupancy())
+            # self._flow.append(self._get_flow())
+            # self._density.append(self._get_density())
+            # self._occupancy.append(self._get_occupancy())
 
-            # saving the data into the memories
-            # if self._step != 0:
-            #     requests.post('http://127.0.0.1:5000/add_samples', json={'old_state_one':  old_state_one.tolist(),
-            #                                                              'old_state_two': old_state_two.tolist(),
-            #                                                              'old_action_one': int(old_action_one),
-            #                                                              'old_action_two': int(old_action_two),
-            #                                                              'reward_one': reward_one,
-            #                                                              'reward_two': reward_two,
-            #                                                              'current_state_one': current_state_one.tolist(),
-            #                                                              'current_state_two': current_state_two.tolist()})
-
-            # choose the light phase to activate, based on the current state of the first intersection
-            action_one = self._choose_action(current_state_one, self._Model_A1)
-            # choose the light phase to activate, based on the current state of the second intersection
-            action_two = self._choose_action(current_state_two, self._Model_A2)
-            
-            print(action_one)
-            print(action_two)
-            #STATIC TRAFFIC LIGHTS PHASES ACTIONS
-            # action_one = action_rotation[ar]
-            # action_two = action_rotation[ar]
-            # #print(action_one)
-            # if action_one % 2 == 0:
-            #     self._green_duration = 30
-            # else:
-            #     self._green_duration = 15
-            # if (ar==3): 
-            #     ar=0
-            # else:
-            #     ar+=1
+            ## STL : predefined actions, NOT STL: model-based action
+            if(self._stl):
+                action_one = action_rotation[ar]
+                action_two = action_rotation[ar]
+                #print(action_one)
+                if action_one % 2 == 0:
+                    self._green_duration = 30
+                else:
+                    self._green_duration = 15
+                if (ar==3): 
+                    ar=0
+                else:
+                    ar+=1
+            else:
+                # choose the light phase to activate, based on the current state of the first intersection
+                action_one = self._choose_action(current_state_one, self._Model_A1)
+                # choose the light phase to activate, based on the current state of the second intersection
+                action_two = self._choose_action(current_state_two, self._Model_A2)
 
             # if the chosen phase is different from the last phase, activate the yellow phase
             #Simultaneity of the 2 traffic lights : manages different cases 
@@ -169,20 +163,15 @@ class Simulation():
             elif self._step != 0 and old_action_two != action_two:
                 self._set_yellow_phase_two(old_action_two)
                 self._simulate(self._yellow_duration)
-
-
             # execute the phase selected before
             self._set_green_phase(action_one)
             self._set_green_phase_two(action_two)
             self._simulate(self._green_duration)
             
-            # saving variables for later & accumulate reward
-            old_state_one = current_state_one
-            old_state_two = current_state_two
-            
+
+
             old_action_one = action_one
             old_action_two = action_two
-            
             old_total_wait_one = current_total_wait_one
             old_total_wait_two = current_total_wait_two
 
@@ -193,26 +182,9 @@ class Simulation():
             if reward_two < 0:
                 self._sum_neg_reward_two += reward_two
 
-        print("Total reward:", self._sum_neg_reward_one + self._sum_neg_reward_two)
+        #print("Total reward:", self._sum_neg_reward_one + self._sum_neg_reward_two)
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
-
-        # print("Training...")
-        # start_time = timeit.default_timer()
-        # for _ in range(self._training_epochs):
-        #     #self._replay()
-        #     tr_loss = requests.post('http://127.0.0.1:5000/replay', json={'num_states': self._num_states,
-        #                                                       'num_actions': self._num_actions,
-        #                                                       'gamma': self._gamma}).json()['loss']
-        #     #print(tr_loss)
-        #     self._model_training_loss.append(tr_loss)
-        # training_time = round(timeit.default_timer() - start_time, 1)
-        
-        # if(len(self._model_training_loss) > 0):
-        #     print("Saving loss results...")
-        #     #print(self._model_training_loss)
-        #     self._avg_loss.append(sum(self._model_training_loss)/self._training_epochs)
-        #     self._min_loss.append(min(self._model_training_loss))
 
         return simulation_time#, training_time
 
@@ -243,6 +215,9 @@ class Simulation():
        
     #Test vehicles
     def _get_pass_vehicles(self):
+        """
+        Test function to check if the number of vehicles that should pass the intersection is correct
+        """
         car_list = traci.vehicle.getIDList()
         for car_id in car_list:
             listi = re.findall(r'\d+', car_id)
@@ -253,6 +228,9 @@ class Simulation():
             
             
     def _get_waiting_vehicles(self):
+        """
+        Store if the vehicle of id *car_id* has waited (1) or not (0) in waits[].
+        """
         car_list = traci.vehicle.getIDList()
         for car_id in car_list:
             listi = re.findall(r'\d+', car_id)
@@ -494,7 +472,7 @@ class Simulation():
             else:
                 lane_group = -1
 
-            if lane_group >= 1 and lane_group <= 7:
+            if lane_group >= 1 and lane_group <= 15:
                 car_position = int(str(lane_group) + str(lane_cell))  # composition of the two postion ID to create a number in interval 0-79
                 valid_car = True
             elif lane_group == 0:
@@ -519,12 +497,10 @@ class Simulation():
                 
             
         #State is now a vector of 80 * 4
-        #First half for first intersection and second for second intersection
-        
+        #First half for first intersection and second for second intersection  
         state_one = np.concatenate((nb_cars[:self._num_cells], avg_speed[:self._num_cells], cumulated_waiting_time[:self._num_cells], nb_queued_cars[:self._num_cells]))
         state_two = np.concatenate((nb_cars[self._num_cells:], avg_speed[self._num_cells:], cumulated_waiting_time[self._num_cells:], nb_queued_cars[self._num_cells:]))
         
-        #print(state.shape)
         return state_one, state_two
 
 

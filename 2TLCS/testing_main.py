@@ -35,8 +35,10 @@ if __name__ == "__main__":
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated'],
-        "EW"
+        config['art_queue'],
+        None
     )
+    #None for Low or High and "EW" or "NS"
 
     Visualization = Visualization(
         plot_path, 
@@ -54,13 +56,14 @@ if __name__ == "__main__":
         config['num_cells'],
         config['num_states'],
         config['num_actions'],
-        config['n_cars_generated']
+        config['n_cars_generated'],
+        config['static_traffic_lights'] #STL or NOT
     )
     
-    reward=0
-    episode = 0
-    ql=[]
-    awt=[]
+    reward=0 #reward
+    episode = 0 #episode number
+    ql=[] #queue length vector for 5 episodes
+    awt=[] #average waiting time per vehicle vector for 5 episodes
     
     seed = [1, 2, 3, 4, 5]
     while episode < 5:

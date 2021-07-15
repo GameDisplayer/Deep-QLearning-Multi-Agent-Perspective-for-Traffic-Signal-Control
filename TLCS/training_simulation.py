@@ -87,10 +87,7 @@ class Simulation():
             reward = old_total_wait - current_total_wait
             #reward = (0.9 * old_total_wait) - current_total_wait
             
-            self._cumulative_waiting_time+= current_total_wait
-            self._flow.append(self._get_flow())
-            self._density.append(self._get_density())
-            self._occupancy.append(self._get_occupancy())
+            self._cumulative_waiting_time+= current_total_wait #cumulative waiting time
 
             # saving the data into the memory
             if self._step != 0:
@@ -163,6 +160,11 @@ class Simulation():
             queue_length = self._get_queue_length()
             self._sum_queue_length += queue_length
             self._sum_waiting_time += queue_length # 1 step while waiting in queue means 1 second waited, for each car, therefore queue_lenght == waited_seconds
+
+            #at each time step
+            self._flow.append(self._get_flow())
+            self._density.append(self._get_density())
+            self._occupancy.append(self._get_occupancy())
 
 
     def _collect_waiting_times(self):

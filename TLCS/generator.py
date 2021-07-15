@@ -96,6 +96,7 @@ class TrafficGenerator:
                     route_straight = np.random.randint(1, 3)
                     route_turn = np.random.randint(1, 5)
                 
+                    #EW
                     if axis_direction < coming_from_percentage : #90% coming from the North or South arm for NS scenario or 10% for EW scenario
                         if straight_or_turn < 0.75:
                             if route_straight == 1:
@@ -111,6 +112,7 @@ class TrafficGenerator:
                                 print('    <vehicle id="E_N_%i" type="standard_car" route="E_N" depart="%s" departLane="random" departSpeed="10" arrivalLane="%i" > <stop lane="TL2N_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, random_out_lane, artificial_queue_ns), file=routes)
                             elif route_turn == 4:
                                 print('    <vehicle id="E_S_%i" type="standard_car" route="E_S" depart="%s" departLane="random" departSpeed="10" arrivalLane="%i" > <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, random_out_lane, artificial_queue_ns), file=routes)
+                    #NS
                     else: # the remaining ones
                         if straight_or_turn < 0.75:
                             route_straight = np.random.randint(1, 3)

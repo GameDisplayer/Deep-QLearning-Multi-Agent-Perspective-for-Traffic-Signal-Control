@@ -161,7 +161,8 @@ def save_model():
 
 if __name__ == '__main__':
     # Start Web App
-    #app.run(threaded=False)
+    #local : app.run(threaded=False)
+    #Remote :
     serve(app, host='127.0.0.1', port=5000)
 
 
