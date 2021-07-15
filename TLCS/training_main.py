@@ -270,8 +270,8 @@ if __name__ == "__main__":
     
     print("\nCalculating Average loss of model...")
     #Visualization.save_data_and_plot_multiple_curves(list_of_data=[[AVG_LOSS[i] for i in range(len(AVG_LOSS)) if i%4==0], [AVG_LOSS[i] for i in range(len(AVG_LOSS)) if i%4==1], [AVG_LOSS[i] for i in range(len(AVG_LOSS)) if i%4==2], [AVG_LOSS[i] for i in range(len(AVG_LOSS)) if i%4==3]], filename='loss', title="Average MAE loss of the model per episode", xlabel='Episodes', ylabel='Average MAE', scenarios=['High', 'Low', 'EW', 'NS'])
-    Visualization.save_data_and_plot(data=MIN_LOSS, filename='min_loss', title="Minimum MAE loss of the model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    Visualization.save_data_and_plot(data=AVG_LOSS, filename='avg_loss', title="Average MAE loss of the model per episode", xlabel='Episodes', ylabel='Average MAE')
+    Visualization.save_data_and_plot(data=MIN_LOSS, filename='min_loss', title="Minimum MSE loss of the model per episode", xlabel='Episodes', ylabel='Minimum MSE')
+    Visualization.save_data_and_plot(data=AVG_LOSS, filename='avg_loss', title="Average MSE loss of the model per episode", xlabel='Episodes', ylabel='Average MSE')
 
 
     print("\nPlotting the fundamental diagrams of traffic flow depending on the scenario...")
