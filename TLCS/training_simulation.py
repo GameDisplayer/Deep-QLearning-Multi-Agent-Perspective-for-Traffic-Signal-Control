@@ -19,8 +19,6 @@ PHASE_EWL_YELLOW = 7
 class Simulation():
     def __init__(self, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, training_epochs):
         
-        #self._Model = Model
-        #self._Memory = Memory
         self._TrafficGen = TrafficGen # the traffic generator class
         self._gamma = gamma #agent performances between 0 and 1
         self._step = 0 #step counter

@@ -1,8 +1,6 @@
 import traci
 import numpy as np
-import random
 import timeit
-import requests
 import re
 
 

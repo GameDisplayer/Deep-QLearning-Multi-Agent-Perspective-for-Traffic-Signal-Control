@@ -12,10 +12,8 @@ from generator import TrafficGenerator
 from visualization import Visualization
 from utils import import_train_configuration, set_sumo, set_train_path
 import tensorflow as tf
-
 import multiprocessing as mp
 import requests
-
 import timeit
 
 
@@ -348,13 +346,13 @@ if __name__ == "__main__":
     print("\nCalculating Average loss of models...")
     #measurements.append([MIN_LOSS_A1, 'min_loss_agent_one', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
     #measurements.append([AVG_LOSS_A1, 'avg_loss_agent_one', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
-    Visualization.save_data_and_plot(data=MIN_LOSS_A1, filename='min_loss_agent_one', title="Minimum MAE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    Visualization.save_data_and_plot(data=AVG_LOSS_A1, filename='avg_loss_agent_one', title="Average MAE loss of the first model per episode", xlabel='Episodes', ylabel='Average MAE')
+    Visualization.save_data_and_plot(data=MIN_LOSS_A1, filename='min_loss_agent_one', title="Minimum MSE loss of the first model per episode", xlabel='Episodes', ylabel='Minimum MSE')
+    Visualization.save_data_and_plot(data=AVG_LOSS_A1, filename='avg_loss_agent_one', title="Average MSE loss of the first model per episode", xlabel='Episodes', ylabel='Average MSE')
     
     #measurements.append([MIN_LOSS_A2, 'min_loss_agent_two', "Minimum MAE loss of the first model per episode", 'Episodes', 'Minimum MAE'])    
     #measurements.append([AVG_LOSS_A2, 'avg_loss_agent_two', "Average MAE loss of the first model per episode", 'Episodes', 'Average MAE'])    
-    Visualization.save_data_and_plot(data=MIN_LOSS_A2, filename='min_loss_agent_two', title="Minimum MAE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MAE')
-    Visualization.save_data_and_plot(data=AVG_LOSS_A2, filename='avg_loss_agent_two', title="Average MAE loss of the second model per episode", xlabel='Episodes', ylabel='Average MAE')
+    Visualization.save_data_and_plot(data=MIN_LOSS_A2, filename='min_loss_agent_two', title="Minimum MSE loss of the second model per episode", xlabel='Episodes', ylabel='Minimum MSE')
+    Visualization.save_data_and_plot(data=AVG_LOSS_A2, filename='avg_loss_agent_two', title="Average MSE loss of the second model per episode", xlabel='Episodes', ylabel='Average MSE')
     
 
     # print("\nPlotting the fundamental diagrams of traffic flow depending on the scenario...")

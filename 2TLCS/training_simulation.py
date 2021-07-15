@@ -19,8 +19,6 @@ PHASE_EWL_YELLOW = 7
 class Simulation():
     def __init__(self, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_cells, num_states, num_actions, training_epochs):
         
-        #self._Model = Model
-        #self._Memory = Memory
         self._TrafficGen = TrafficGen
         self._gamma = gamma
         self._step = 0
@@ -69,12 +67,9 @@ class Simulation():
 
         # inits
         self._step = 0
-        
         self._waiting_times = {}
-        
         self._sum_neg_reward_one = 0
         self._sum_neg_reward_two = 0
-
         self._sum_queue_length = 0
         self._sum_queue_length_a1 = 0
         self._sum_queue_length_a2 = 0
@@ -102,33 +97,33 @@ class Simulation():
             # get current state of each of the intersections
             current_state_one, current_state_two = self._get_states_with_advanced_perception()
   
-            #Adding the knowledge of the other agent previous action
-            current_state_one = np.append(current_state_one, old_action_two)
-            current_state_two = np.append(current_state_two, old_action_one)         
+            if (self._num_states == 321):
+                #Adding the knowledge of the other agent previous action
+                current_state_one = np.append(current_state_one, old_action_two)
+                current_state_two = np.append(current_state_two, old_action_one)         
+                    
             
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
-            
-            #Reward per agents
+            ## Reward per agents
             #current_total_wait_one = self._collect_waiting_times_first_intersection()
             #reward_one = old_total_wait_one - current_total_wait_one
-            
             #current_total_wait_two = self._collect_waiting_times_second_intersection()
             #reward_two = old_total_wait_two - current_total_wait_two
 
-            #New reward per agents
+            ## New reward per agents
             current_total_wait_one = 0.8 * self._collect_waiting_times_first_intersection() + self._get_queue_length_intersection_one() 
             reward_one = old_total_wait_one - current_total_wait_one
 
             current_total_wait_two = 0.8 * self._collect_waiting_times_second_intersection() + self._get_queue_length_intersection_two()
             reward_two = old_total_wait_two - current_total_wait_two
 
+            ## Metrics
             self._cumulative_waiting_time_agent_one += current_total_wait_one
             self._cumulative_waiting_time_agent_two += current_total_wait_two
-            
-            self._flow.append(self._get_flow())
-            self._density.append(self._get_density())
-            self._occupancy.append(self._get_occupancy())
+            # self._flow.append(self._get_flow())
+            # self._density.append(self._get_density())
+            # self._occupancy.append(self._get_occupancy())
 
             # saving the data into the memories
             if self._step != 0:
@@ -160,8 +155,6 @@ class Simulation():
             elif self._step != 0 and old_action_two != action_two:
                 self._set_yellow_phase_two(old_action_two)
                 self._simulate(self._yellow_duration)
-
-
             # execute the phase selected before
             self._set_green_phase(action_one)
             self._set_green_phase_two(action_two)
@@ -183,8 +176,6 @@ class Simulation():
                 
             if reward_two < 0:
                 self._sum_neg_reward_two += reward_two
-
-        
 
         print("Saving episodes stats...")
         self._save_episode_stats()
@@ -229,6 +220,10 @@ class Simulation():
 
             self._sum_queue_length_a1 += self._get_queue_length_intersection_one()
             self._sum_queue_length_a2 += self._get_queue_length_intersection_two()
+
+            # self._flow.append(self._get_flow())
+            # self._density.append(self._get_density())
+            # self._occupancy.append(self._get_occupancy())
 
     def _collect_waiting_times_first_intersection(self):
         """
@@ -492,8 +487,6 @@ class Simulation():
             
         #State is now a vector of 80 * 4
         #First half for first intersection and second half for second intersection
-        
-        
         state_one = np.concatenate((nb_cars[:self._num_cells], avg_speed[:self._num_cells], cumulated_waiting_time[:self._num_cells], nb_queued_cars[:self._num_cells]))
         state_two = np.concatenate((nb_cars[self._num_cells:], avg_speed[self._num_cells:], cumulated_waiting_time[self._num_cells:], nb_queued_cars[self._num_cells:]))
         
