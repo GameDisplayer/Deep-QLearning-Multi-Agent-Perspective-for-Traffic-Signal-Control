@@ -115,7 +115,6 @@ class TrafficGenerator:
                     #NS
                     else: # the remaining ones
                         if straight_or_turn < 0.75:
-                            route_straight = np.random.randint(1, 3)
                             if route_straight == 1:
                                 print('    <vehicle id="N_S_%i" type="standard_car" route="N_S" depart="%s" departLane="random" departSpeed="10" arrivalLane="%i" > <stop lane="TL2S_%i" endPos="750" duration="%i"/> </vehicle>' % (car_counter, step, random_out_lane, random_out_lane, artificial_queue_ns), file=routes)
                             elif route_straight == 2:
