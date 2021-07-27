@@ -30,8 +30,8 @@ class Simulation:
         self._reward_episode = []
         self._queue_length_episode = []
         self._stl = stl #True or False, if we use the static traffic lights or not
-        
 
+        self._action_steps = []
 
     def run(self, episode):
         """
@@ -59,6 +59,7 @@ class Simulation:
         action_rotation=[0,1,2,3]
         ar=0
         while self._step < self._max_steps:
+            self._action_steps.append(self._step)
 
             # get current state of the intersection
             current_state = self._get_state_with_advanced_perception()
@@ -101,6 +102,7 @@ class Simulation:
             self._reward_episode.append(reward)
 
         #print("Total reward:", np.sum(self._reward_episode))  
+        #self._save_episode_stats()
         
         traci.close()
         simulation_time = round(timeit.default_timer() - start_time, 1)
@@ -294,6 +296,12 @@ class Simulation:
         return state
 
 
+    def _save_episode_stats(self):
+        """
+        Save the stats of the episode to plot the graphs at the end of the session
+        """
+        self._reward_store.append(self._sum_neg_reward)  # how much negative reward in this episode
+
 
     @property
     def queue_length_episode(self):
@@ -304,5 +312,7 @@ class Simulation:
     def reward_episode(self):
         return self._reward_episode
 
-
+    @property
+    def xs(self):
+        return self._action_steps
 

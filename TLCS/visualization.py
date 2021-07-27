@@ -7,6 +7,7 @@ class Visualization:
             self._dpi = dpi
 
 
+
     def save_data_and_plot(self, data, filename, title, xlabel, ylabel):
         """
         Produce a plot of performance of the agent over the session and save the relative data to txt
@@ -29,6 +30,33 @@ class Visualization:
 
         with open(os.path.join(self._path, 'plot_'+filename + '_data.txt'), "w") as file:
             for value in data:
+                    file.write("%s\n" % value)
+
+
+    def save_data_x_y_and_plot(self, data_x, data_y, filename, title, xlabel, ylabel):
+        """
+        Produce a plot of performance of the agent over the session and save the relative data to txt, with x and y values
+        """
+        min_val = min(data_y)
+        max_val = max(data_y)
+
+        plt.rcParams.update({'font.size': 24})  # set bigger font size
+
+        plt.title(title)
+        plt.plot(data_x, data_y)
+        plt.ylabel(ylabel)
+        plt.xlabel(xlabel)
+        plt.margins(0)
+        plt.ylim(min_val - 0.05 * abs(min_val), max_val + 0.05 * abs(max_val))
+        fig = plt.gcf()
+        fig.set_size_inches(20, 11.25)
+        fig.savefig(os.path.join(self._path, 'plot_'+filename+'.png'), dpi=self._dpi)
+        plt.close("all")
+
+        with open(os.path.join(self._path, 'plot_'+filename + '_data.txt'), "w") as file:
+            for value in data_x:
+                    file.write("%s\n" % value)
+            for value in data_y:
                     file.write("%s\n" % value)
                     
                     
