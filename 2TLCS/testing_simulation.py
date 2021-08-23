@@ -30,29 +30,16 @@ class Simulation():
         self._num_states = num_states
         self._num_actions = num_actions
         self._n_cars = n_cars
+        self._reward_episode = []
+        self._reward_TL1_episode = []
+        self._reward_TL2_episode = []
+        self._queue_length_episode = []
+        self._queue_length_TL1_episode = []
+        self._queue_length_TL2_episode = []
         self._stl = stl #True or False, if we use the static traffic lights or not
 
-        
-        self._reward_store = []
-        self._reward_store_a1 = []
-        self._reward_store_a2 = []
-        self._cumulative_wait_store = []
-        self._cumulative_wait_store_a1 = []
-        self._cumulative_wait_store_a2 = []
-        self._avg_queue_length_store = []
-        self._avg_queue_length_store_a1 = []
-        self._avg_queue_length_store_a2 = []
-        self._avg_wait_time_per_vehicle = []
-        self._avg_wait_time_per_vehicle_a1 = []
-        self._avg_wait_time_per_vehicle_a2 = []
-        self._avg_loss = []
-        self._min_loss = []
-        self._list_density = []
-        self._list_flow = []
-        self._avg_density = []
-        self._avg_flow = []
-        self._list_occupancy = []
-        
+
+        self._action_steps = []
 
 
     def run(self, episode):
@@ -69,35 +56,21 @@ class Simulation():
 
         # inits
         self._step = 0
-        
         self._waiting_times = {}
+        old_total_wait_one = 0
+        old_total_wait_two = 0
+        old_action_one = -1
+        old_action_two = -1
         
+        #Metrics
+        self._sum_neg_reward = 0
         self._sum_neg_reward_one = 0
         self._sum_neg_reward_two = 0
 
         self._sum_queue_length = 0
         self._sum_queue_length_a1 = 0
         self._sum_queue_length_a2 = 0
-        self._sum_waiting_time = 0
-        
-        self._model_training_loss = []
-        self._already_in = []
-        
-        self._density = []
-        self._flow = []
-        self._occupancy = []
-        
-        self._cumulative_waiting_time_agent_one = 0
-        self._cumulative_waiting_time_agent_two = 0
-        
-        old_total_wait_one = 0
-        old_total_wait_two = 0
-        old_state_one = -1
-        old_action_one = -1
-        old_state_two = -1
-        old_action_two = -1
-        
-        
+
         self._waits = [0 for i in range(self._n_cars)]
         self._pass = [0 for i in range(self._n_cars)]
         action_rotation=[0,1,2,3]
@@ -117,18 +90,21 @@ class Simulation():
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             ## Reward per agents
-            current_total_wait_one = self._collect_waiting_times_first_intersection()
-            reward_one = old_total_wait_one - current_total_wait_one
-            current_total_wait_two = self._collect_waiting_times_second_intersection()
-            reward_two = old_total_wait_two - current_total_wait_two
-            
-            ## Metrics
-            self._cumulative_waiting_time_agent_one += current_total_wait_one
-            self._cumulative_waiting_time_agent_two += current_total_wait_two
-            # self._flow.append(self._get_flow())
-            # self._density.append(self._get_density())
-            # self._occupancy.append(self._get_occupancy())
+            # current_total_wait_one = self._collect_waiting_times_first_intersection()
+            # reward_one = old_total_wait_one - current_total_wait_one
+            # current_total_wait_two = self._collect_waiting_times_second_intersection()
+            # reward_two = old_total_wait_two - current_total_wait_two
 
+            ## New reward per agents
+            current_total_wait_one = 0.2 * self._collect_waiting_times_first_intersection() + self._get_queue_length_intersection_one() 
+            reward_one = old_total_wait_one - current_total_wait_one
+            current_total_wait_two = 0.2 * self._collect_waiting_times_second_intersection() + self._get_queue_length_intersection_two()
+            reward_two = old_total_wait_two - current_total_wait_two
+
+            ## Mutual reward
+            reward_one += 0.5 * reward_two
+            reward_two += 0.5 * reward_one
+            
             ## STL : predefined actions, NOT STL: model-based action
             if(self._stl):
                 action_one = action_rotation[ar]
@@ -161,13 +137,12 @@ class Simulation():
             elif self._step != 0 and old_action_two != action_two:
                 self._set_yellow_phase_two(old_action_two)
                 self._simulate(self._yellow_duration)
+
             # execute the phase selected before
             self._set_green_phase(action_one)
             self._set_green_phase_two(action_two)
             self._simulate(self._green_duration)
             
-
-
             old_action_one = action_one
             old_action_two = action_two
             old_total_wait_one = current_total_wait_one
@@ -179,6 +154,11 @@ class Simulation():
                 
             if reward_two < 0:
                 self._sum_neg_reward_two += reward_two
+
+            #Reward episode
+            self._reward_episode.append(reward_one + reward_two)
+            self._reward_TL1_episode.append(reward_one)
+            self._reward_TL2_episode.append(reward_two)
 
         #print("Total reward:", self._sum_neg_reward_one + self._sum_neg_reward_two)
         traci.close()
@@ -199,12 +179,18 @@ class Simulation():
             self._step += 1 # update the step counter
             steps_todo -= 1
             queue_length = self._get_queue_length_intersection_one() + self._get_queue_length_intersection_two()
-            self._sum_queue_length += queue_length
-            #print("Sumq", self._sum_queue_length)
-            self._sum_waiting_time += queue_length # 1 step while waiting in queue means 1 second waited, for each car, therefore queue_lenght == waited_seconds
+            self._sum_queue_length += queue_length 
+            self._queue_length_episode.append(queue_length)
 
-            self._sum_queue_length_a1 += self._get_queue_length_intersection_one()
-            self._sum_queue_length_a2 += self._get_queue_length_intersection_two()
+            queue_length_1 = self._get_queue_length_intersection_one()
+            self._sum_queue_length_a1 += queue_length_1
+            self._queue_length_TL1_episode.append(queue_length_1)
+
+            queue_length_2 = self._get_queue_length_intersection_two()
+            self._sum_queue_length_a2 += queue_length_2
+            self._queue_length_TL2_episode.append(queue_length_2)
+
+            
             self._get_waiting_vehicles()
             #print(sum(self._waits))
             self._get_pass_vehicles()
@@ -507,92 +493,34 @@ class Simulation():
         """
         Save the stats of the episode to plot the graphs at the end of the session
         """
-        cum= self._cumulative_waiting_time_agent_one + self._cumulative_waiting_time_agent_two
         
         self._reward_store.append(self._sum_neg_reward_one + self._sum_neg_reward_two)  # how much negative reward in this episode for both agents
         self._reward_store_a1.append(self._sum_neg_reward_one)
         self._reward_store_a2.append(self._sum_neg_reward_two)
-        #self._cumulative_wait_store.append(self._sum_waiting_time)  # total number of seconds waited by cars in this episode
         
-        self._cumulative_wait_store.append(cum) #cumulative wait time in this episode for both agents
-        self._cumulative_wait_store_a1.append(self._cumulative_waiting_time_agent_one)
-        self._cumulative_wait_store_a2.append(self._cumulative_waiting_time_agent_two)
-        
-        self._avg_queue_length_store.append(self._sum_queue_length / self._max_steps)  # average number of queued cars per step, in this episode
-        self._avg_queue_length_store_a1.append(self._sum_queue_length_a1 / self._max_steps)
-        self._avg_queue_length_store_a2.append(self._sum_queue_length_a2 / self._max_steps)
-        
-        self._avg_wait_time_per_vehicle.append(cum/self._sum_queue_length) #how much time a vehicle wait in an episode
-        self._avg_wait_time_per_vehicle_a1.append(self._cumulative_waiting_time_agent_one/self._sum_queue_length)
-        self._avg_wait_time_per_vehicle_a2.append(self._cumulative_waiting_time_agent_two/self._sum_queue_length)
-        
-       
-        ### TO BE MODIFIED
-        self._list_density.append(self._density)
-        self._list_flow.append(self._flow)
-        self._list_occupancy.append(self._occupancy)
-        
-        
+  
     @property
-    def avg_density_and_flow(self):
-        avg_den = [sum(i)/len(self._list_density) for i in zip(*self._list_density)]
-        d_max = max(avg_den) #maximum density
-        self._max_index = avg_den.index(d_max)
-        self._avg_density = avg_den[:self._max_index+1]
-        self._avg_flow = [sum(i)/len(self._list_flow) for i in zip(*self._list_flow)][:self._max_index+1]
-        return self._avg_density, self._avg_flow
-        
-    @property
-    def get_avg_density_and_flow(self):
-        return self._avg_density, self._avg_flow
-    
-    @property
-    def get_avg_occupancy_and_flow(self):
-        avg_occ = [sum(i)/len(self._list_occupancy) for i in zip(*self._list_occupancy)]
-        o_max = max(avg_occ) #maximum occupancy
-        max_index = avg_occ.index(o_max)
-        avg_occ = avg_occ[:max_index+1]
-        avg_flow = [sum(i)/len(self._list_flow) for i in zip(*self._list_flow)][:max_index+1]
-        return avg_occ, avg_flow
-    
-    @property
-    def avg_wait_time_per_vehicle(self):
-        return self._avg_wait_time_per_vehicle
-    
-    @property
-    def avg_loss(self):
-        return self._avg_loss
-    
-    @property
-    def min_loss(self):
-        return self._min_loss
+    def reward_episode(self):
+        return self._reward_episode
 
     @property
-    def reward_store(self):
-        return self._reward_store
+    def reward_episode_1(self):
+        return self._reward_TL1_episode
 
     @property
-    def cumulative_wait_store(self):
-        return self._cumulative_wait_store
+    def reward_episode_2(self):
+        return self._reward_TL2_episode
+
 
     @property
-    def avg_queue_length_store(self):
-        return self._avg_queue_length_store
+    def queue_length_episode(self):
+        return self._queue_length_episode
+
+    @property
+    def queue_length_episode_1(self):
+        return self._queue_length_TL1_episode
     
     @property
-    def density(self):
-        return self._density
-    
-    @property
-    def flow(self):
-        return self._flow
-    
-    @property
-    def occupancy(self):
-        return self._occupancy
-    
-    
-    
-    #End simulation
-    def stop(self):
-        return self.reward_store[0], self._reward_store_a1[0], self._reward_store_a2[0], self.cumulative_wait_store[0], self._cumulative_wait_store_a1[0], self._cumulative_wait_store_a2[0], self.avg_queue_length_store[0], self._avg_queue_length_store_a1[0], self._avg_queue_length_store_a2[0], self.avg_wait_time_per_vehicle[0], self._avg_wait_time_per_vehicle_a1[0], self._avg_wait_time_per_vehicle_a2[0], self.density, self.flow, self.occupancy
+    def queue_length_episode_2(self):
+        return self._queue_length_TL2_episode
+   

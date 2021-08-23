@@ -84,19 +84,22 @@ if __name__ == "__main__":
     #High traffic generator
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated_high']
+        config['n_cars_generated_high'],
+        config['art_queue']
     )
     
     #Low traffic generator
     TrafficGen_2 = TrafficGenerator(
         config['max_steps'], 
-        config['n_cars_generated_low']
+        config['n_cars_generated_low'],
+        config['art_queue']
     )
     
     #EW traffic generator
     TrafficGen_3 = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_ew'],
+        config['art_queue'],
         'EW'
     )
     
@@ -104,6 +107,7 @@ if __name__ == "__main__":
     TrafficGen_4 = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated_ns'],
+        config['art_queue'],
         'NS'
     )
 

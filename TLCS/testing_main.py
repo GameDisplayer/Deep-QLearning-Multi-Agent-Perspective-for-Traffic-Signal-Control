@@ -34,7 +34,7 @@ if __name__ == "__main__":
         config['art_queue'],
         None
     )
-    #None or "EW" or "NS"
+    #None or "NS" or "EW"
 
     Visualization = Visualization(
         plot_path, 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     cuts = [0]
 
 
-    seed = [randrange(5, 100000)  for i in range(0,5)] #seeds for reproducibility
+    #seed = [randrange(5, 100000)  for i in range(0,5)] #seeds for reproducibility
     seed = [45715, 92490, 80265, 3957, 40983]
     while episode < 5:
         print('\n----- Test episode n°', episode)
@@ -92,15 +92,15 @@ if __name__ == "__main__":
     print("----- Testing info saved at:", plot_path)
     copyfile(src='testing_settings.ini', dst=os.path.join(plot_path, 'testing_settings.ini')) #Save to recall the test settings
     
-    print("Saved into informations.txt")
-    f = open(os.path.join(plot_path, "informations"), "a")
-    f.write("\n----- Total simulation time : " + str(total_testing_simulation_time))
-    f.write("\n----- nrw : " + str(avg_reward))
-    f.write("\n----- twt : " + str(twt))
-    f.write("\n----- awt : " + str(awt))
-    f.write("\n----- seeds : " + str(seed))
-    f.write("\n\n")
-    f.close()
+    # print("Saved into informations.txt")
+    # f = open(os.path.join(plot_path, "informations"), "a")
+    # f.write("\n----- Total simulation time : " + str(total_testing_simulation_time))
+    # f.write("\n----- nrw : " + str(avg_reward))
+    # f.write("\n----- twt : " + str(twt))
+    # f.write("\n----- awt : " + str(awt))
+    # f.write("\n----- seeds : " + str(seed))
+    # f.write("\n\n")
+    # f.close()
 
     #Print informations for average episodes
     print('seeds', seed)

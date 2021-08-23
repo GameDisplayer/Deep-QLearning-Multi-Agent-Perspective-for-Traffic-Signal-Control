@@ -100,23 +100,26 @@ class Simulation():
             if (self._num_states == 321):
                 #Adding the knowledge of the other agent previous action
                 current_state_one = np.append(current_state_one, old_action_two)
-                current_state_two = np.append(current_state_two, old_action_one)         
+                current_state_two = np.append(current_state_two, old_action_one)  
                     
             
             # calculate reward of previous action: (change in cumulative waiting time between actions)
             # waiting time = seconds waited by a car since the spawn in the environment, cumulated for every car in incoming lanes
             ## Reward per agents
-            #current_total_wait_one = self._collect_waiting_times_first_intersection()
-            #reward_one = old_total_wait_one - current_total_wait_one
-            #current_total_wait_two = self._collect_waiting_times_second_intersection()
-            #reward_two = old_total_wait_two - current_total_wait_two
+            # current_total_wait_one = self._collect_waiting_times_first_intersection()
+            # reward_one = old_total_wait_one - current_total_wait_one
+            # current_total_wait_two = self._collect_waiting_times_second_intersection()
+            # reward_two = old_total_wait_two - current_total_wait_two
 
             ## New reward per agents
-            current_total_wait_one = 0.8 * self._collect_waiting_times_first_intersection() + self._get_queue_length_intersection_one() 
+            current_total_wait_one = 0.2 * self._collect_waiting_times_first_intersection() + self._get_queue_length_intersection_one() 
             reward_one = old_total_wait_one - current_total_wait_one
-
-            current_total_wait_two = 0.8 * self._collect_waiting_times_second_intersection() + self._get_queue_length_intersection_two()
+            current_total_wait_two = 0.2 * self._collect_waiting_times_second_intersection() + self._get_queue_length_intersection_two()
             reward_two = old_total_wait_two - current_total_wait_two
+
+            ## Mutual reward
+            reward_one += 0.5 * reward_two
+            reward_two += 0.5 * reward_one
 
             ## Metrics
             self._cumulative_waiting_time_agent_one += current_total_wait_one
@@ -221,9 +224,9 @@ class Simulation():
             self._sum_queue_length_a1 += self._get_queue_length_intersection_one()
             self._sum_queue_length_a2 += self._get_queue_length_intersection_two()
 
-            # self._flow.append(self._get_flow())
-            # self._density.append(self._get_density())
-            # self._occupancy.append(self._get_occupancy())
+            self._flow.append(self._get_flow())
+            self._density.append(self._get_density())
+            self._occupancy.append(self._get_occupancy())
 
     def _collect_waiting_times_first_intersection(self):
         """
