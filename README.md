@@ -72,7 +72,14 @@ For more information (environment variables or description) please go to the [Do
 During my thesis, I learned about the [actor-critic](http://incompleteideas.net/book/first/ebook/node66.html) methods that already has promising results in the Adaptive Traffic Signal Control branch.
 Based on [this implementation](https://github.com/cts198859/deeprl_signal_control) I created a forked repo to make some experiments on the 2TLCS environment. It is far from being the central part of my work but I think that it deserves to be explored further. [Discover the repo](https://github.com/GameDisplayer/Multi-Agent-DRL4-Large-Scale-Traffic-Signal-Control)
 
-## Contact
+## Author
 
 Romain Michelucci - r.michelucci@campus.unimib.it
 
+The master's thesis is fully available [here](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/tree/master/Master%20Thesis).
+
+If you need further information about the algorithm or the report, I suggest you open an issue on the issues page or contact me to my email address. I 'll very pleased to answer it !
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
