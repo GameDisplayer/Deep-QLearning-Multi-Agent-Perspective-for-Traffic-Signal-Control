@@ -82,4 +82,4 @@ If you need further information about the algorithm or the report, I suggest you
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/GameDisplayer/Deep-QLearning-Multi-Agent-Perspective-for-Traffic-Signal-Control/blob/master/LICENSE) file for details.
